@@ -168,6 +168,7 @@ export function RecommendationsNew() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todas">Todas las sucursales</SelectItem>
+
                 {Array.isArray(sucursales)
                   ? sucursales
                       .map((s: any) => ({ id: s?.id ?? s?.idSucursal ?? s?.idsucursal, name: s?.nombre ?? s?.nombre_sucursal }))
@@ -178,6 +179,13 @@ export function RecommendationsNew() {
                         </SelectItem>
                       ))
                   : null}
+=======
+                {sucursales.map((sucursal) => (
+                  <SelectItem key={sucursal.id} value={sucursal.id.toString()}>
+                    {sucursal.nombre}
+                  </SelectItem>
+                ))}
+
               </SelectContent>
             </Select>
           </div>

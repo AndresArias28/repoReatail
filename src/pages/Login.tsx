@@ -18,11 +18,27 @@ function Login() {
 
         try {
             const response = await authService.login({ email, password });
-            
+            console.log('Login exitoso:', response);
+
             if (response.token) {
-                console.log('Login exitoso:', response);
-                // Redirigir al dashboard
-                navigate('/dashboard');
+                // Guardar token en localStorage
+                localStorage.setItem('token', response.token);
+
+                // Guardar información del usuario
+                if (response.usuario) {
+                    localStorage.setItem('user', JSON.stringify(response.usuario));
+                }
+
+                // Detectar rol del usuario
+                const rol = response.usuario?.rol || 'usuario';
+                console.log('🎯 Rol detectado:', rol);
+
+                // Redirigir según el rol
+                if (rol.toLowerCase() === 'administrador') {
+                    navigate('/admin');
+                } else {
+                    navigate('/dashboard');
+                }
             } else {
                 setError(response.message || 'Error al iniciar sesión');
             }
@@ -33,6 +49,7 @@ function Login() {
             setIsLoading(false);
         }
     };
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-white p-4">
@@ -159,6 +176,7 @@ function Login() {
                         </button>
                     </div>
 
+
                     {/* Divider */}
                     <div className="relative my-4">
                         <div className="absolute inset-0 flex items-center">
@@ -188,6 +206,8 @@ function Login() {
                             Regístrate aquí
                         </button>
                     </p>
+
+
                 </div>
                 </div>
             </div>
@@ -195,4 +215,4 @@ function Login() {
     );
 }
 
-export  {Login};
+export { Login };
