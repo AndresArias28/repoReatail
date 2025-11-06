@@ -2,7 +2,9 @@
 // RECOMENDACIONES CON INTEGRACIÓN API
 // ============================================
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
@@ -25,42 +27,10 @@ import {
 import { useRecommendations } from '../hooks/useAnalytics';
 import { useBranches } from '../hooks/useBranches';
 import type { FiltrosAnalytics } from '../types/database.types';
+import { realtimeService } from '../services/realtime.service';
+import type { LowStockEvent } from '../services/realtime.service';
 
-// Datos mock como fallback
-const MOCK_RECOMMENDATIONS = [
-  {
-    id: 1,
-    type: 'stock' as const,
-    priority: 'alta' as const,
-    title: 'Aumentar stock de T-Shirts talla M',
-    description: 'La demanda ha aumentado un 45% en las últimas 2 semanas. Stock actual: 145 unidades (rotación: 3 días).',
-    action: 'Reabastecer 200 unidades',
-  },
-  {
-    id: 2,
-    type: 'promo' as const,
-    priority: 'alta' as const,
-    title: 'Aplicar descuento a Jeans XL',
-    description: 'Baja rotación detectada (19 unidades sin movimiento en 30 días). Riesgo de inventario estancado.',
-    action: 'Descuento 20-30%',
-  },
-  {
-    id: 3,
-    type: 'urgente' as const,
-    priority: 'critica' as const,
-    title: 'Stock crítico: Short Deportivo talla S',
-    description: 'Solo quedan 5 unidades. Producto con alta rotación en temporada actual.',
-    action: 'Compra urgente',
-  },
-  {
-    id: 4,
-    type: 'oportunidad' as const,
-    priority: 'media' as const,
-    title: 'Impulsar venta de Vestidos Cóctel',
-    description: 'Temporada de eventos sociales próxima. Ventas históricas muestran incremento del 60% en noviembre.',
-    action: 'Campaña promocional',
-  },
-];
+// Sin datos mock: se mostrará estado vacío si no hay datos del backend ni eventos en vivo
 
 const getIcon = (type: string) => {
   switch (type) {
@@ -109,13 +79,47 @@ const getBgColor = (type: string) => {
 
 export function RecommendationsNew() {
   const [filtros, setFiltros] = useState<FiltrosAnalytics>({});
+  const [liveRecs, setLiveRecs] = useState<any[]>([]);
+  const navigate = useNavigate();
 
   // Cargar datos
   const { data: sucursales } = useBranches();
   const { data: recommendations, loading } = useRecommendations(filtros);
 
-  // Usar datos de API o fallback a mock
-  const displayData = recommendations.length > 0 ? recommendations : MOCK_RECOMMENDATIONS;
+  const displayData = Array.isArray(recommendations) ? recommendations : [];
+  const combined = [...liveRecs, ...displayData];
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const ev = e as CustomEvent<LowStockEvent>;
+      const d = ev.detail;
+      const prio = d.stock <= 2 ? 'critica' : 'alta';
+      const rec = {
+        id: Date.now(),
+        type: 'stock',
+        priority: prio,
+        title: d.producto ? `Stock bajo: ${d.producto}` : 'Stock bajo detectado',
+        description: `Stock actual: ${d.stock}. Umbral: ${d.threshold}.` ,
+        action: 'Reabastecer',
+      };
+      setLiveRecs((prev) => [rec, ...prev].slice(0, 20));
+
+      // Toast con acción para ir a Inventario
+      toast.warning(rec.title, {
+        description: rec.description,
+        action: {
+          label: 'Ver inventario',
+          onClick: () => navigate('/dashboard/inventario'),
+        },
+      });
+    };
+    window.addEventListener('inventory.low_stock', handler as any);
+    realtimeService.startLowStockWatcher(20000, 5, filtros.idSucursal);
+    return () => {
+      window.removeEventListener('inventory.low_stock', handler as any);
+      realtimeService.stop();
+    };
+  }, [filtros.idSucursal]);
 
   // Calcular estadísticas
   const totalRecommendations = displayData.length;
@@ -154,9 +158,9 @@ export function RecommendationsNew() {
               </p>
             </div>
             <Select
-              value={filtros.idSucursal?.toString() || 'todas'}
-              onValueChange={(value) =>
-                setFiltros({ ...filtros, idSucursal: value === 'todas' ? undefined : parseInt(value) })
+              value={filtros.idSucursal != null ? String(filtros.idSucursal) : 'todas'}
+              onValueChange={(value: string) =>
+                setFiltros({ ...filtros, idSucursal: value === 'todas' ? undefined : parseInt(value, 10) })
               }
             >
               <SelectTrigger className="w-[200px]">
@@ -164,11 +168,24 @@ export function RecommendationsNew() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todas">Todas las sucursales</SelectItem>
+
+                {Array.isArray(sucursales)
+                  ? sucursales
+                      .map((s: any) => ({ id: s?.id ?? s?.idSucursal ?? s?.idsucursal, name: s?.nombre ?? s?.nombre_sucursal }))
+                      .filter((s) => typeof s.id === 'number' && !Number.isNaN(s.id))
+                      .map((s) => (
+                        <SelectItem key={s.id} value={String(s.id)}>
+                          {s.name}
+                        </SelectItem>
+                      ))
+                  : null}
+=======
                 {sucursales.map((sucursal) => (
                   <SelectItem key={sucursal.id} value={sucursal.id.toString()}>
                     {sucursal.nombre}
                   </SelectItem>
                 ))}
+
               </SelectContent>
             </Select>
           </div>
@@ -180,9 +197,13 @@ export function RecommendationsNew() {
         <div className="flex h-[400px] items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
         </div>
+      ) : combined.length === 0 ? (
+        <div className="flex h-[200px] items-center justify-center text-sm text-gray-500">
+          No hay recomendaciones en este momento
+        </div>
       ) : (
         <div className="grid grid-cols-1 gap-4">
-          {displayData.map((rec) => {
+          {combined.map((rec) => {
             const Icon = getIcon(rec.type);
             return (
               <Card key={rec.id} className="shadow-sm transition-shadow hover:shadow-md">
