@@ -29,9 +29,9 @@ import { useBranches } from '../hooks/useBranches';
 // Datos mock como fallback (estructura real del backend)
 const MOCK_INVENTORY = [
   { 
-    idinventario: 1, 
+    idInventario: 1, 
     idproducto: 1, 
-    idsucursal: 1,
+    idSucursal: 1,
     stock: 145, 
     producto: { 
       nombre: 'T-Shirt Básica Blanca', 
@@ -49,9 +49,9 @@ const MOCK_INVENTORY = [
     }
   },
   { 
-    idinventario: 2, 
+    idInventario: 2, 
     idproducto: 2, 
-    idsucursal: 1,
+    idSucursal: 1,
     stock: 23, 
     producto: { 
       nombre: 'Jean Skinny Azul', 
@@ -69,9 +69,9 @@ const MOCK_INVENTORY = [
     }
   },
   { 
-    idinventario: 3, 
+    idInventario: 3, 
     idproducto: 3, 
-    idsucursal: 2,
+    idSucursal: 2,
     stock: 8, 
     producto: { 
       nombre: 'Buzo con Capucha Negro', 
@@ -105,8 +105,12 @@ export function InventoryNew() {
     search: searchTerm,
   });
 
-  // Usar datos de API o fallback a mock (con validación)
-  const displayData = inventoryData && inventoryData.length > 0 ? inventoryData : MOCK_INVENTORY;
+  // Debug: Ver qué datos llegan del backend
+  console.log('📦 Inventory Data:', inventoryData);
+  console.log('📊 Meta:', meta);
+
+  // Usar SOLO datos reales del backend (sin mock)
+  const displayData = inventoryData || [];
 
   // Calcular estadísticas
   const statsAlto = displayData.filter(item => {
@@ -213,7 +217,7 @@ export function InventoryNew() {
               <SelectContent>
                 <SelectItem value="todas">Todas las sucursales</SelectItem>
                 {sucursales.map((sucursal) => (
-                  <SelectItem key={sucursal.idSucursal} value={sucursal.idSucursal.toString()}>
+                  <SelectItem key={sucursal.id} value={sucursal.id.toString()}>
                     {sucursal.nombre}
                   </SelectItem>
                 ))}
@@ -231,36 +235,22 @@ export function InventoryNew() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Producto</TableHead>
-                    <TableHead>Marca</TableHead>
-                    <TableHead>Categoría</TableHead>
-                    <TableHead>Talla</TableHead>
-                    <TableHead>Precio</TableHead>
+                    <TableHead>ID Producto</TableHead>
+                    <TableHead>ID Sucursal</TableHead>
                     <TableHead>Stock</TableHead>
-                    <TableHead>Sucursal</TableHead>
                     <TableHead>Estado</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {displayData.map((item, index) => (
-                    <TableRow key={item.idinventario || `inventory-${index}`}>
+                    <TableRow key={item.idInventario || `inventory-${index}`}>
                       <TableCell className="font-medium">
-                        {item.producto?.nombre || 'N/A'}
-                      </TableCell>
-                      <TableCell>{item.producto?.marca || 'N/A'}</TableCell>
-                      <TableCell>
-                        {item.producto?.subcategoria?.categoria?.nombre_categoria || 'N/A'}
+                        Producto #{item.idproducto}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{item.producto?.talla || 'N/A'}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        ${item.producto?.precio ? Number(item.producto.precio).toLocaleString() : '0'}
+                        <Badge variant="secondary">Sucursal #{item.idSucursal}</Badge>
                       </TableCell>
                       <TableCell className="font-semibold">{item.stock} unidades</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{item.sucursal?.nombre || 'N/A'}</Badge>
-                      </TableCell>
                       <TableCell>{getStockBadge(item.stock)}</TableCell>
                     </TableRow>
                   ))}
