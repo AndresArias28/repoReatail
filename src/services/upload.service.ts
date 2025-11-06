@@ -1,8 +1,9 @@
 // ============================================
-// SERVICIO DE CARGA DE DATOS
+// SERVICIO DE CARGA DE DATOS CON AXIOS
 // ============================================
 
-import { API_BASE_URL, getAuthHeaders } from '../config/api.config';
+import axios, { AxiosInstance } from 'axios';
+import { API_BASE_URL } from '../config/api.config';
 import type { ApiResponse } from '../types/database.types';
 
 export interface UploadResponse {
@@ -23,14 +24,22 @@ export interface UploadPreview {
 }
 
 class UploadService {
-  private baseURL: string;
+  private axiosInstance: AxiosInstance;
 
   constructor() {
-    this.baseURL = API_BASE_URL;
-  }
+    this.axiosInstance = axios.create({
+      baseURL: API_BASE_URL,
+      timeout: 60000, // 60 segundos para uploads
+    });
 
-  private getToken(): string | null {
-    return localStorage.getItem('auth_token');
+    // Interceptor para agregar el token
+    this.axiosInstance.interceptors.request.use((config) => {
+      const token = localStorage.getItem('auth_token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    });
   }
 
   /**
@@ -40,23 +49,17 @@ class UploadService {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch(`${this.baseURL}/api/upload/products`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.getToken()}`,
-        // No incluir Content-Type, el navegador lo establece automáticamente con boundary
-      },
-      body: formData,
-    });
+    const response = await this.axiosInstance.post<ApiResponse<UploadResponse>>(
+      '/api/upload/products',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({
-        message: 'Error al subir archivo',
-      }));
-      throw new Error(error.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return response.json();
+    return response.data;
   }
 
   /**
@@ -66,22 +69,17 @@ class UploadService {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch(`${this.baseURL}/api/upload/inventory`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.getToken()}`,
-      },
-      body: formData,
-    });
+    const response = await this.axiosInstance.post<ApiResponse<UploadResponse>>(
+      '/api/upload/inventory',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({
-        message: 'Error al subir archivo',
-      }));
-      throw new Error(error.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return response.json();
+    return response.data;
   }
 
   /**
@@ -91,22 +89,17 @@ class UploadService {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch(`${this.baseURL}/api/upload/sales`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.getToken()}`,
-      },
-      body: formData,
-    });
+    const response = await this.axiosInstance.post<ApiResponse<UploadResponse>>(
+      '/api/upload/sales',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
 
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({
-        message: 'Error al subir archivo',
-      }));
-      throw new Error(error.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return response.json();
+    return response.data;
   }
 
   /**
@@ -185,16 +178,11 @@ class UploadService {
    * Descargar plantilla de ejemplo
    */
   async downloadTemplate(type: 'products' | 'inventory' | 'sales'): Promise<void> {
-    const response = await fetch(`${this.baseURL}/api/upload/template/${type}`, {
-      method: 'GET',
-      headers: getAuthHeaders(this.getToken()),
+    const response = await this.axiosInstance.get(`/api/upload/template/${type}`, {
+      responseType: 'blob',
     });
 
-    if (!response.ok) {
-      throw new Error('Error al descargar plantilla');
-    }
-
-    const blob = await response.blob();
+    const blob = new Blob([response.data]);
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

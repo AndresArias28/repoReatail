@@ -1,21 +1,37 @@
 import { useState } from 'react';
-import { Lock, Mail, Eye, EyeOff, LogIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Lock, Mail, Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
+import { authService } from '../services/auth.service';
 
- function Login() {
+function Login() {
+    const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleSubmit = (e: React.MouseEvent) => {
+    const handleSubmit = async (e: React.MouseEvent) => {
         e.preventDefault();
         setIsLoading(true);
+        setError('');
 
-        setTimeout(() => {
-            console.log('Login:', { email, password });
-            alert(`¡Bienvenido! Email: ${email}`);
+        try {
+            const response = await authService.login({ email, password });
+            
+            if (response.token) {
+                console.log('Login exitoso:', response);
+                // Redirigir al dashboard
+                navigate('/dashboard');
+            } else {
+                setError(response.message || 'Error al iniciar sesión');
+            }
+        } catch (err: any) {
+            console.error('Error en login:', err);
+            setError(err.message || 'Error de conexión con el servidor');
+        } finally {
             setIsLoading(false);
-        }, 1500);
+        }
     };
 
     return (
@@ -44,6 +60,14 @@ import { Lock, Mail, Eye, EyeOff, LogIn } from 'lucide-react';
                     <p className="text-white text-opacity-70 text-center mb-8">
                         Ingresa tus credenciales para continuar
                     </p>
+
+                    {/* Error message */}
+                    {error && (
+                        <div className="bg-red-500 bg-opacity-20 border border-red-400 text-white px-4 py-3 rounded-xl flex items-center gap-2">
+                            <AlertCircle className="w-5 h-5" />
+                            <span>{error}</span>
+                        </div>
+                    )}
 
                     {/* Form */}
                     <div className="space-y-6">

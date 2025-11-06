@@ -30,9 +30,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await authService.login(credentials);
       
-      if (response.success) {
-        setToken(response.data.token);
-        setUser(response.data.user);
+      // El backend devuelve: { message, token, expiresIn, usuario }
+      if (response.token) {
+        setToken(response.token);
+        setUser(response.usuario);
       } else {
         throw new Error(response.message || 'Error al iniciar sesión');
       }

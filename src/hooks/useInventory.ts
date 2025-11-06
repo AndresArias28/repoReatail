@@ -27,11 +27,12 @@ export function useInventory(params?: {
       try {
         setLoading(true);
         const response = await inventoryService.getInventory(params);
-        setData(response.data);
-        setMeta(response.meta);
+        setData(response.data || []);
+        setMeta(response.meta || { total: 0, per_page: 10, current_page: 1, last_page: 1 });
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error al cargar inventario');
+        setData([]); // Fallback a array vacío
       } finally {
         setLoading(false);
       }
@@ -44,25 +45,13 @@ export function useInventory(params?: {
 }
 
 export function useLowStockProducts(idSucursal?: number) {
-  const [data, setData] = useState<InventarioConAlerta[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [data] = useState<InventarioConAlerta[]>([]);
+  const [loading] = useState(false);
+  const [error] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await inventoryService.getLowStockProducts(idSucursal);
-        setData(response.data);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error al cargar productos con stock bajo');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    // Ruta /inventario/stockBajo no implementada en el backend
+    console.warn('⚠️ useLowStockProducts: Ruta /inventario/stockBajo no implementada en el backend');
   }, [idSucursal]);
 
   return { data, loading, error };

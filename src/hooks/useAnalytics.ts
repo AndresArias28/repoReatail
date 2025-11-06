@@ -17,24 +17,14 @@ import type {
 
 export function useKPIs(filtros?: FiltrosAnalytics) {
   const [data, setData] = useState<KPIData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // No loading porque no hace petición
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await analyticsService.getKPIs(filtros);
-        setData(response.data);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error al cargar KPIs');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    // Ruta no implementada en el backend, devolver null para usar mock
+    setData(null);
+    setLoading(false);
+    setError(null);
   }, [JSON.stringify(filtros)]);
 
   return { data, loading, error };
@@ -42,24 +32,14 @@ export function useKPIs(filtros?: FiltrosAnalytics) {
 
 export function useSalesByCategory(filtros?: FiltrosAnalytics) {
   const [data, setData] = useState<VentasPorCategoria[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // No loading porque no hace petición
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await analyticsService.getSalesByCategory(filtros);
-        setData(response.data);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error al cargar ventas por categoría');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    // Ruta no implementada en el backend, devolver array vacío para usar mock
+    setData([]);
+    setLoading(false);
+    setError(null);
   }, [JSON.stringify(filtros)]);
 
   return { data, loading, error };
@@ -75,10 +55,11 @@ export function useSalesBySize(filtros?: FiltrosAnalytics) {
       try {
         setLoading(true);
         const response = await analyticsService.getSalesBySize(filtros);
-        setData(response.data);
+        setData(response.data || []);
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error al cargar ventas por talla');
+        setData([]);
       } finally {
         setLoading(false);
       }
@@ -92,24 +73,14 @@ export function useSalesBySize(filtros?: FiltrosAnalytics) {
 
 export function useSalesByMonth(filtros?: FiltrosAnalytics) {
   const [data, setData] = useState<VentasPorMes[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // No loading porque no hace petición
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const response = await analyticsService.getSalesByMonth(filtros);
-        setData(response.data);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error al cargar ventas mensuales');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+    // Ruta no implementada en el backend, devolver array vacío para usar mock
+    setData([]);
+    setLoading(false);
+    setError(null);
   }, [JSON.stringify(filtros)]);
 
   return { data, loading, error };
@@ -149,11 +120,12 @@ export function useTopProducts(limit: number = 5, filtros?: FiltrosAnalytics) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await analyticsService.getTopProducts(limit, filtros);
-        setData(response.data);
+        const response = await analyticsService.getTopProducts(filtros);
+        setData(response.data || []);
         setError(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Error al cargar productos más vendidos');
+        setData([]); // Mantener array vacío en caso de error
       } finally {
         setLoading(false);
       }

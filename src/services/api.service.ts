@@ -1,88 +1,78 @@
 // ============================================
-// SERVICIO PRINCIPAL DE API
+// SERVICIO PRINCIPAL DE API CON AXIOS
 // ============================================
 
-import { API_BASE_URL, getAuthHeaders } from '../config/api.config';
-import type { ApiResponse, PaginatedResponse } from '../types/database.types';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
+import { API_BASE_URL } from '../config/api.config';
 
 class ApiService {
-  private baseURL: string;
+  private axiosInstance: AxiosInstance;
 
   constructor() {
-    this.baseURL = API_BASE_URL;
-  }
+    this.axiosInstance = axios.create({
+      baseURL: API_BASE_URL,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      timeout: 30000, // 30 segundos
+    });
 
-  private getToken(): string | null {
-    return localStorage.getItem('auth_token');
-  }
+    // Interceptor para agregar el token en cada petición
+    this.axiosInstance.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem('auth_token');
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
 
-  private async handleResponse<T>(response: Response): Promise<T> {
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({
-        message: 'Error en la solicitud',
-      }));
-      throw new Error(error.message || `HTTP error! status: ${response.status}`);
-    }
-
-    return response.json();
+    // Interceptor para manejar errores de respuesta
+    this.axiosInstance.interceptors.response.use(
+      (response) => response,
+      (error: AxiosError) => {
+        if (error.response) {
+          // El servidor respondió con un código de error
+          const message = (error.response.data as any)?.message || error.message;
+          throw new Error(message);
+        } else if (error.request) {
+          // La petición se hizo pero no hubo respuesta
+          throw new Error('No se pudo conectar con el servidor');
+        } else {
+          // Error al configurar la petición
+          throw new Error(error.message);
+        }
+      }
+    );
   }
 
   async get<T>(endpoint: string, params?: Record<string, any>): Promise<T> {
-    const url = new URL(`${this.baseURL}${endpoint}`);
-    
-    if (params) {
-      Object.keys(params).forEach(key => {
-        if (params[key] !== undefined && params[key] !== null) {
-          url.searchParams.append(key, params[key].toString());
-        }
-      });
-    }
-
-    const response = await fetch(url.toString(), {
-      method: 'GET',
-      headers: getAuthHeaders(this.getToken()),
-    });
-
-    return this.handleResponse<T>(response);
+    const response = await this.axiosInstance.get<T>(endpoint, { params });
+    return response.data;
   }
 
   async post<T>(endpoint: string, data?: any): Promise<T> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
-      method: 'POST',
-      headers: getAuthHeaders(this.getToken()),
-      body: JSON.stringify(data),
-    });
-
-    return this.handleResponse<T>(response);
+    const response = await this.axiosInstance.post<T>(endpoint, data);
+    return response.data;
   }
 
   async put<T>(endpoint: string, data?: any): Promise<T> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
-      method: 'PUT',
-      headers: getAuthHeaders(this.getToken()),
-      body: JSON.stringify(data),
-    });
-
-    return this.handleResponse<T>(response);
+    const response = await this.axiosInstance.put<T>(endpoint, data);
+    return response.data;
   }
 
   async patch<T>(endpoint: string, data?: any): Promise<T> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
-      method: 'PATCH',
-      headers: getAuthHeaders(this.getToken()),
-      body: JSON.stringify(data),
-    });
-
-    return this.handleResponse<T>(response);
+    const response = await this.axiosInstance.patch<T>(endpoint, data);
+    return response.data;
   }
 
   async delete<T>(endpoint: string): Promise<T> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(this.getToken()),
-    });
-
-    return this.handleResponse<T>(response);
+    const response = await this.axiosInstance.delete<T>(endpoint);
+    return response.data;
   }
 }
 

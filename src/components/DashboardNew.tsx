@@ -78,10 +78,10 @@ export function DashboardNew() {
   const { data: salesBySize, loading: loadingSize } = useSalesBySize(filtros);
   const { data: salesByMonth, loading: loadingMonth } = useSalesByMonth(filtros);
 
-  // Usar datos de API o fallback a mock
-  const categoryData = salesByCategory.length > 0 ? salesByCategory : MOCK_SALES_BY_CATEGORY;
-  const sizeData = salesBySize.length > 0 ? salesBySize : MOCK_SALES_BY_SIZE;
-  const monthData = salesByMonth.length > 0 ? salesByMonth : MOCK_MONTHLY_TREND;
+  // Usar datos de API o fallback a mock (con validación)
+  const categoryData = salesByCategory && salesByCategory.length > 0 ? salesByCategory : MOCK_SALES_BY_CATEGORY;
+  const sizeData = salesBySize && salesBySize.length > 0 ? salesBySize : MOCK_SALES_BY_SIZE;
+  const monthData = salesByMonth && salesByMonth.length > 0 ? salesByMonth : MOCK_MONTHLY_TREND;
 
   const handleApplyFilters = () => {
     // Los filtros ya se aplican automáticamente cuando cambia el estado

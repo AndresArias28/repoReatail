@@ -26,13 +26,68 @@ import {
 import { useInventory, useLowStockProducts } from '../hooks/useInventory';
 import { useBranches } from '../hooks/useBranches';
 
-// Datos mock como fallback
+// Datos mock como fallback (estructura real del backend)
 const MOCK_INVENTORY = [
-  { idInventario: 1, idproducto: 1, stock: 145, nivel: 'alto', producto: { nombre: 'T-Shirt Básica Blanca', marca: 'Nike', talla: 'M', subcategoria: { categoria: { nombre_categoria: 'T-Shirts' } } } },
-  { idInventario: 2, idproducto: 2, stock: 23, nivel: 'medio', producto: { nombre: 'Jean Skinny Azul', marca: 'Levis', talla: 'L', subcategoria: { categoria: { nombre_categoria: 'Jeans' } } } },
-  { idInventario: 3, idproducto: 3, stock: 8, nivel: 'bajo', producto: { nombre: 'Buzo con Capucha Negro', marca: 'Adidas', talla: 'XL', subcategoria: { categoria: { nombre_categoria: 'Buzos' } } } },
-  { idInventario: 4, idproducto: 4, stock: 67, nivel: 'alto', producto: { nombre: 'Vestido Floral Verano', marca: 'Zara', talla: 'S', subcategoria: { categoria: { nombre_categoria: 'Vestidos' } } } },
-  { idInventario: 5, idproducto: 5, stock: 12, nivel: 'bajo', producto: { nombre: 'Abrigo de Lana Gris', marca: 'H&M', talla: 'M', subcategoria: { categoria: { nombre_categoria: 'Abrigos' } } } },
+  { 
+    idinventario: 1, 
+    idproducto: 1, 
+    idsucursal: 1,
+    stock: 145, 
+    producto: { 
+      nombre: 'T-Shirt Básica Blanca', 
+      marca: 'Nike', 
+      talla: 'M', 
+      precio: 29990,
+      subcategoria: { 
+        categoria: { 
+          nombre_categoria: 'Camisetas' 
+        } 
+      } 
+    },
+    sucursal: {
+      nombre: 'Sucursal Centro'
+    }
+  },
+  { 
+    idinventario: 2, 
+    idproducto: 2, 
+    idsucursal: 1,
+    stock: 23, 
+    producto: { 
+      nombre: 'Jean Skinny Azul', 
+      marca: 'Levis', 
+      talla: 'L', 
+      precio: 89990,
+      subcategoria: { 
+        categoria: { 
+          nombre_categoria: 'Jeans' 
+        } 
+      } 
+    },
+    sucursal: {
+      nombre: 'Sucursal Centro'
+    }
+  },
+  { 
+    idinventario: 3, 
+    idproducto: 3, 
+    idsucursal: 2,
+    stock: 8, 
+    producto: { 
+      nombre: 'Buzo con Capucha Negro', 
+      marca: 'Adidas', 
+      talla: 'XL', 
+      precio: 79990,
+      subcategoria: { 
+        categoria: { 
+          nombre_categoria: 'Buzos' 
+        } 
+      } 
+    },
+    sucursal: {
+      nombre: 'Sucursal Norte'
+    }
+  },
 ];
 
 export function InventoryNew() {
@@ -49,10 +104,9 @@ export function InventoryNew() {
     idSucursal: selectedSucursal,
     search: searchTerm,
   });
-  const { data: lowStockData } = useLowStockProducts(selectedSucursal);
 
-  // Usar datos de API o fallback a mock
-  const displayData = inventoryData.length > 0 ? inventoryData : MOCK_INVENTORY;
+  // Usar datos de API o fallback a mock (con validación)
+  const displayData = inventoryData && inventoryData.length > 0 ? inventoryData : MOCK_INVENTORY;
 
   // Calcular estadísticas
   const statsAlto = displayData.filter(item => {
@@ -177,19 +231,19 @@ export function InventoryNew() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ID</TableHead>
                     <TableHead>Producto</TableHead>
                     <TableHead>Marca</TableHead>
                     <TableHead>Categoría</TableHead>
                     <TableHead>Talla</TableHead>
-                    <TableHead>Cantidad</TableHead>
+                    <TableHead>Precio</TableHead>
+                    <TableHead>Stock</TableHead>
+                    <TableHead>Sucursal</TableHead>
                     <TableHead>Estado</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {displayData.map((item) => (
-                    <TableRow key={item.idInventario}>
-                      <TableCell>{item.idInventario}</TableCell>
+                  {displayData.map((item, index) => (
+                    <TableRow key={item.idinventario || `inventory-${index}`}>
                       <TableCell className="font-medium">
                         {item.producto?.nombre || 'N/A'}
                       </TableCell>
@@ -200,7 +254,13 @@ export function InventoryNew() {
                       <TableCell>
                         <Badge variant="outline">{item.producto?.talla || 'N/A'}</Badge>
                       </TableCell>
-                      <TableCell>{item.stock} unidades</TableCell>
+                      <TableCell>
+                        ${item.producto?.precio ? Number(item.producto.precio).toLocaleString() : '0'}
+                      </TableCell>
+                      <TableCell className="font-semibold">{item.stock} unidades</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary">{item.sucursal?.nombre || 'N/A'}</Badge>
+                      </TableCell>
                       <TableCell>{getStockBadge(item.stock)}</TableCell>
                     </TableRow>
                   ))}

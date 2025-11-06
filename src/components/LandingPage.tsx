@@ -64,9 +64,9 @@ export function LandingPage() {
               <Button 
                 className="text-white hover:opacity-90"
                 style={{background: 'linear-gradient(to right, #0071BC, #662D91)'}}
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate('/login')}
               >
-                Ir al Dashboard
+                Iniciar Sesión
               </Button>
             </div>
 
@@ -90,9 +90,9 @@ export function LandingPage() {
                   <Button 
                     className="w-full text-white hover:opacity-90"
                     style={{background: 'linear-gradient(to right, #0071BC, #662D91)'}}
-                    onClick={() => navigate('/dashboard')}
+                    onClick={() => navigate('/login')}
                   >
-                    Ir al Dashboard
+                    Iniciar Sesión
                   </Button>
                 </div>
               </div>
@@ -126,9 +126,9 @@ export function LandingPage() {
                   size="lg" 
                   className="text-white text-lg px-8 py-6 hover:opacity-90"
                   style={{background: 'linear-gradient(to right, #FFD400, #F7931E)'}}
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => navigate('/login')}
                 >
-                  Ir al Dashboard
+                  Comenzar Ahora
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
                 <Button 
@@ -380,9 +380,9 @@ export function LandingPage() {
                 size="lg"
                 className="text-lg px-12 py-6 hover:opacity-90"
                 style={{background: 'linear-gradient(to right, #FFD400, #F7931E)', color: '#000'}}
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate('/login')}
               >
-                Ir al Dashboard
+                Comenzar Ahora
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
               <Button 

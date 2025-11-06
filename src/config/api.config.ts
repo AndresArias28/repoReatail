@@ -5,88 +5,94 @@
 // URL base del backend AdonisJS
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3333';
 
-// Endpoints de la API
+// Endpoints de la API (ajustados a las rutas reales del backend)
 export const API_ENDPOINTS = {
   // Autenticación
   AUTH: {
-    LOGIN: '/api/auth/login',
-    LOGOUT: '/api/auth/logout',
-    ME: '/api/auth/me',
-    REGISTER: '/api/auth/register',
+    LOGIN: '/auth/login',
+    LOGOUT: '/auth/logout',
+    REGISTER: '/auth/register',
+    ME: '/auth/me',
   },
 
-  // Analytics
+  // Estadísticas (Analytics)
   ANALYTICS: {
-    KPI: '/api/analytics/kpi',
-    SALES_BY_CATEGORY: '/api/analytics/sales-by-category',
-    SALES_BY_SIZE: '/api/analytics/sales-by-size',
-    SALES_BY_MONTH: '/api/analytics/sales-by-month',
-    SALES_DAILY: '/api/analytics/sales-daily',
-    TOP_PRODUCTS: '/api/analytics/top-products',
-    RECOMMENDATIONS: '/api/analytics/recommendations',
+    TOP_PRODUCTS: '/estadisticas/masVendidos',
+    SALES_BY_SIZE: '/estadisticas/tallasMayorSalida',
+    LOW_PRODUCTS: '/estadisticas/menosVendidos',
+    DISCOUNT_LOW_ROTATION: '/estadisticas/descuentoBajaRotacion',
+    // Endpoints que podrían no existir aún en el backend
+    KPI: '/estadisticas/kpi',
+    SALES_BY_CATEGORY: '/estadisticas/ventasPorCategoria',
+    SALES_BY_MONTH: '/estadisticas/ventasPorMes',
+    SALES_DAILY: '/estadisticas/ventasDiarias',
+    RECOMMENDATIONS: '/estadisticas/recomendaciones',
   },
 
   // Inventario
   INVENTORY: {
-    LIST: '/api/inventory',
-    BY_ID: (id: number) => `/api/inventory/${id}`,
-    BY_SUCURSAL: (idSucursal: number) => `/api/inventory/sucursal/${idSucursal}`,
-    LOW_STOCK: '/api/inventory/low-stock',
-    UPDATE_STOCK: (id: number) => `/api/inventory/${id}/stock`,
+    LIST: '/inventario/obtener',
+    BY_ID: (id: number) => `/inventario/obtenerPorId/${id}`,
+    CREATE: '/inventario/crear',
+    UPDATE: (id: number) => `/inventario/actualizar/${id}`,
+    DELETE: (id: number) => `/inventario/eliminar/${id}`,
+    BY_SUCURSAL: (idSucursal: number) => `/inventario/sucursal/${idSucursal}`,
+    LOW_STOCK: '/inventario/stockBajo',
+    UPDATE_STOCK: (id: number) => `/inventario/actualizar/${id}`,
   },
 
   // Productos
   PRODUCTS: {
-    LIST: '/api/products',
-    BY_ID: (id: number) => `/api/products/${id}`,
-    CREATE: '/api/products',
-    UPDATE: (id: number) => `/api/products/${id}`,
-    DELETE: (id: number) => `/api/products/${id}`,
+    LIST: '/productos/obtener',
+    BY_ID: (id: number) => `/productos/obtenerPorId/${id}`,
+    CREATE: '/productos/crear',
+    UPDATE: (id: number) => `/productos/actualizar/${id}`,
+    DELETE: (id: number) => `/productos/eliminar/${id}`,
   },
 
   // Facturas
   INVOICES: {
-    LIST: '/api/invoices',
-    BY_ID: (id: number) => `/api/invoices/${id}`,
-    CREATE: '/api/invoices',
-    BY_SUCURSAL: (idSucursal: number) => `/api/invoices/sucursal/${idSucursal}`,
-    BY_DATE_RANGE: '/api/invoices/date-range',
+    LIST: '/facturacion/obtener',
+    BY_ID: (id: number) => `/facturacion/obtenerPorId/${id}`,
+    CREATE: '/facturacion/crear',
+    BY_SUCURSAL: (idSucursal: number) => `/facturacion/sucursal/${idSucursal}`,
+    BY_DATE_RANGE: '/facturacion/rangoFechas',
   },
 
-  // Clientes
+  // Clientes (endpoints que podrían no existir aún)
   CUSTOMERS: {
-    LIST: '/api/customers',
-    BY_ID: (id: number) => `/api/customers/${id}`,
-    CREATE: '/api/customers',
-    UPDATE: (id: number) => `/api/customers/${id}`,
+    LIST: '/clientes/obtener',
+    BY_ID: (id: number) => `/clientes/obtenerPorId/${id}`,
+    CREATE: '/clientes/crear',
+    UPDATE: (id: number) => `/clientes/actualizar/${id}`,
   },
 
-  // Sucursales
+  // Sucursales (endpoints que podrían no existir aún)
   BRANCHES: {
-    LIST: '/api/branches',
-    BY_ID: (id: number) => `/api/branches/${id}`,
+    LIST: '/sucursales/obtener',
+    BY_ID: (id: number) => `/sucursales/obtenerPorId/${id}`,
   },
 
-  // Categorías
+  // Categorías (endpoints que podrían no existir aún)
   CATEGORIES: {
-    LIST: '/api/categories',
-    WITH_SUBCATEGORIES: '/api/categories/with-subcategories',
+    LIST: '/categorias/obtener',
+    WITH_SUBCATEGORIES: '/categorias/conSubcategorias',
   },
 
-  // Usuarios
+  // Usuarios (endpoints que podrían no existir aún)
   USERS: {
-    LIST: '/api/users',
-    BY_ID: (id: number) => `/api/users/${id}`,
-    CREATE: '/api/users',
-    UPDATE: (id: number) => `/api/users/${id}`,
+    LIST: '/usuarios/obtener',
+    BY_ID: (id: number) => `/usuarios/obtenerPorId/${id}`,
+    CREATE: '/usuarios/crear',
+    UPDATE: (id: number) => `/usuarios/actualizar/${id}`,
   },
 
   // Upload de archivos
   UPLOAD: {
-    PRODUCTS: '/api/upload/products',
-    INVENTORY: '/api/upload/inventory',
-    SALES: '/api/upload/sales',
-    TEMPLATE: (type: string) => `/api/upload/template/${type}`,
+    PRODUCTS: '/api/imports/productos',
+    INVENTORY: '/api/imports/inventario',
+    SALES: '/api/imports/ventas',
+    TEMPLATE: (type: string) => `/api/imports/plantilla/${type}`,
   },
 };
 

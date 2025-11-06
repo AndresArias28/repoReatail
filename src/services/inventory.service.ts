@@ -14,6 +14,8 @@ import type {
 export const inventoryService = {
   /**
    * Obtener lista de inventario
+   * Backend: GET /inventario/obtener
+   * Respuesta: Array simple (no paginado)
    */
   async getInventory(params?: {
     page?: number;
@@ -21,10 +23,28 @@ export const inventoryService = {
     idSucursal?: number;
     search?: string;
   }): Promise<PaginatedResponse<Inventario>> {
-    return apiService.get<PaginatedResponse<Inventario>>(
+    const response = await apiService.get<Inventario[]>(
       API_ENDPOINTS.INVENTORY.LIST,
       params
     );
+    
+    // El backend devuelve un array simple, no paginado
+    // Crear respuesta paginada manualmente
+    const data = Array.isArray(response) ? response : [];
+    const page = params?.page || 1;
+    const perPage = params?.per_page || 10;
+    const start = (page - 1) * perPage;
+    const paginatedData = data.slice(start, start + perPage);
+    
+    return {
+      data: paginatedData,
+      meta: {
+        total: data.length,
+        per_page: perPage,
+        current_page: page,
+        last_page: Math.ceil(data.length / perPage),
+      },
+    };
   },
 
   /**

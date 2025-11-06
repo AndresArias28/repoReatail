@@ -4,19 +4,7 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-} from 'recharts';
-import { TrendingUp, TrendingDown, DollarSign, Loader2 } from 'lucide-react';
+import { TrendingUp, DollarSign, Loader2, ShoppingBag } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -24,24 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
-import { useDailySales, useTopProducts, useSalesByMonth } from '../hooks/useAnalytics';
+import { useTopProducts } from '../hooks/useAnalytics';
 import { useBranches } from '../hooks/useBranches';
 import type { FiltrosAnalytics } from '../types/database.types';
 
-// Datos mock como fallback
-const MOCK_DAILY_SALES = Array.from({ length: 30 }, (_, i) => ({
-  fecha: `${i + 1}`,
-  ventas: Math.floor(Math.random() * 300) + 500,
-  cantidad: Math.floor(Math.random() * 50) + 50,
-}));
-
-const MOCK_COMPARE_DATA = [
-  { mes: 'Jul', actual: 17200, anterior: 16100 },
-  { mes: 'Ago', actual: 16900, anterior: 15800 },
-  { mes: 'Sep', actual: 18500, anterior: 17200 },
-  { mes: 'Oct', actual: 19200, anterior: 17800 },
-];
-
+// Datos mock solo para productos (fallback si no hay datos del backend)
 const MOCK_TOP_PRODUCTS = [
   { nombre: 'T-Shirt Básica Blanca M', cantidad: 450, ventas_totales: 4500 },
   { nombre: 'Jean Skinny Azul L', cantidad: 320, ventas_totales: 4160 },
@@ -51,26 +26,24 @@ const MOCK_TOP_PRODUCTS = [
 ];
 
 export function SalesMonthNew() {
-  const [filtros, setFiltros] = useState<FiltrosAnalytics>({});
+  const [filtros, setFiltros] = useState<FiltrosAnalytics>({
+    mes: new Date().getMonth() + 1 // Mes actual (1-12)
+  });
 
-  // Cargar datos
+  // Cargar datos del backend (top 5 productos del mes actual)
   const { data: sucursales } = useBranches();
-  const { data: dailySales, loading: loadingDaily } = useDailySales(filtros);
-  const { data: monthlySales, loading: loadingMonthly } = useSalesByMonth(filtros);
   const { data: topProducts, loading: loadingTop } = useTopProducts(5, filtros);
 
-  // Usar datos de API o fallback a mock
-  const dailyData = dailySales.length > 0 ? dailySales : MOCK_DAILY_SALES;
-  const compareData = monthlySales.length > 0 ? monthlySales.slice(-4) : MOCK_COMPARE_DATA;
-  const topProductsData = topProducts.length > 0 ? topProducts : MOCK_TOP_PRODUCTS;
+  // Usar datos reales del backend
+  const topProductsData = topProducts && topProducts.length > 0 ? topProducts : MOCK_TOP_PRODUCTS;
 
-  // Calcular totales
-  const totalVentas = dailyData.reduce((sum, item) => sum + item.ventas, 0);
-  const promedioDiario = Math.round(totalVentas / dailyData.length);
-  const crecimiento = compareData.length >= 2
-    ? (((compareData[compareData.length - 1].ventas - compareData[compareData.length - 2].ventas) /
-        compareData[compareData.length - 2].ventas) * 100).toFixed(1)
-    : '7.9';
+  // Calcular métricas basadas en los productos más vendidos del mes actual
+  const totalUnidadesVendidas = topProductsData.reduce((sum, item) => sum + (item?.cantidad || 0), 0);
+  const totalVentas = topProductsData.reduce((sum, item) => sum + (item?.ventas_totales || 0), 0);
+  
+  // Calcular promedio diario basado en los días del mes actual
+  const diasDelMes = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+  const promedioDiario = diasDelMes > 0 ? Math.round(totalVentas / diasDelMes) : 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -79,10 +52,38 @@ export function SalesMonthNew() {
         <CardContent className="p-4">
           <div className="flex flex-wrap items-center gap-4">
             <span className="text-sm font-medium">Filtros:</span>
+            
+            {/* Filtro de Mes */}
             <Select
-              value={filtros.idSucursal?.toString() || 'todas'}
+              value={filtros.mes?.toString() || new Date().getMonth() + 1}
               onValueChange={(value) =>
-                setFiltros({ ...filtros, idSucursal: value === 'todas' ? undefined : parseInt(value) })
+                setFiltros({ ...filtros, mes: parseInt(value) })
+              }
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Mes" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">Enero</SelectItem>
+                <SelectItem value="2">Febrero</SelectItem>
+                <SelectItem value="3">Marzo</SelectItem>
+                <SelectItem value="4">Abril</SelectItem>
+                <SelectItem value="5">Mayo</SelectItem>
+                <SelectItem value="6">Junio</SelectItem>
+                <SelectItem value="7">Julio</SelectItem>
+                <SelectItem value="8">Agosto</SelectItem>
+                <SelectItem value="9">Septiembre</SelectItem>
+                <SelectItem value="10">Octubre</SelectItem>
+                <SelectItem value="11">Noviembre</SelectItem>
+                <SelectItem value="12">Diciembre</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {/* Filtro de Sucursal */}
+            <Select
+              value={filtros.idsucursal?.toString() || 'todas'}
+              onValueChange={(value) =>
+                setFiltros({ ...filtros, idsucursal: value === 'todas' ? undefined : parseInt(value) })
               }
             >
               <SelectTrigger className="w-[200px]">
@@ -91,7 +92,7 @@ export function SalesMonthNew() {
               <SelectContent>
                 <SelectItem value="todas">Todas las sucursales</SelectItem>
                 {sucursales.map((sucursal) => (
-                  <SelectItem key={sucursal.idSucursal} value={sucursal.idSucursal.toString()}>
+                  <SelectItem key={sucursal.idsucursal} value={sucursal.idsucursal.toString()}>
                     {sucursal.nombre}
                   </SelectItem>
                 ))}
@@ -124,8 +125,8 @@ export function SalesMonthNew() {
                 <TrendingUp className="h-6 w-6 text-white" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">Crecimiento</p>
-                <p className="text-2xl font-bold text-green-600">+{crecimiento}%</p>
+                <p className="text-sm text-gray-600">Unidades Vendidas</p>
+                <p className="text-2xl font-bold text-green-600">{totalUnidadesVendidas.toLocaleString()}</p>
               </div>
             </div>
           </CardContent>
@@ -146,64 +147,7 @@ export function SalesMonthNew() {
         </Card>
       </div>
 
-      {/* Ventas diarias */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle>Ventas Diarias - Mes Actual</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loadingDaily ? (
-            <div className="flex h-[350px] items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={dailyData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="fecha" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="ventas" fill="#0071BC" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Comparación con meses anteriores */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle>Comparación con Meses Anteriores</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loadingMonthly ? (
-            <div className="flex h-[300px] items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={compareData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="mes" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="ventas"
-                  stroke="#0071BC"
-                  strokeWidth={3}
-                  name="Ventas"
-                  dot={{ fill: '#0071BC', r: 5 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Top productos del mes */}
+      {/* Productos más vendidos del mes */}
       <Card className="shadow-sm">
         <CardHeader>
           <CardTitle>Top 5 Productos del Mes</CardTitle>
@@ -225,12 +169,12 @@ export function SalesMonthNew() {
                       {index + 1}
                     </div>
                     <div>
-                      <p className="text-sm font-medium">{item.nombre}</p>
-                      <p className="text-xs text-gray-500">{item.cantidad} unidades</p>
+                      <p className="text-sm font-medium">{item.nombre || 'Producto sin nombre'}</p>
+                      <p className="text-xs text-gray-500">{item.cantidad || 0} unidades</p>
                     </div>
                   </div>
                   <p className="font-bold" style={{ color: '#0071BC' }}>
-                    ${item.ventas_totales.toLocaleString()}
+                    {item.ventas_totales ? `$${item.ventas_totales.toLocaleString()}` : '$0'}
                   </p>
                 </div>
               ))}

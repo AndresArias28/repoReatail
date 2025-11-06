@@ -15,16 +15,17 @@ export const authService = {
   /**
    * Iniciar sesión
    */
-  async login(credentials: LoginCredentials): Promise<ApiResponse<AuthResponse>> {
-    const response = await apiService.post<ApiResponse<AuthResponse>>(
+  async login(credentials: LoginCredentials): Promise<any> {
+    const response = await apiService.post<any>(
       API_ENDPOINTS.AUTH.LOGIN,
       credentials
     );
 
     // Guardar token en localStorage
-    if (response.success && response.data.token) {
-      localStorage.setItem('auth_token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+    // El backend devuelve: { message, token, expiresIn, usuario }
+    if (response.token) {
+      localStorage.setItem('auth_token', response.token);
+      localStorage.setItem('user', JSON.stringify(response.usuario));
     }
 
     return response;
