@@ -45,6 +45,7 @@ export const inventoryService = {
     console.log('📄 Paginated Data:', paginatedData);
     
     return {
+      success: true,
       data: paginatedData,
       meta: {
         total: data.length,
@@ -53,6 +54,11 @@ export const inventoryService = {
         last_page: Math.ceil(data.length / perPage),
       },
     };
+  },
+
+  /** Crear registro de inventario */
+  async create(payload: { idproducto: number; idsucursal: number; stock: number }): Promise<Inventario> {
+    return apiService.post<Inventario>(API_ENDPOINTS.INVENTORY.CREATE, payload);
   },
 
   /**

@@ -4,6 +4,7 @@ import {
   LayoutDashboard,
   TrendingUp,
   Package,
+  ShoppingBag,
   Building2,
   Lightbulb,
   Upload,
@@ -24,6 +25,7 @@ export function DashboardLayout() {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard Principal', icon: LayoutDashboard, path: '/dashboard' },
     { id: 'ventas', label: 'Ventas por Mes', icon: TrendingUp, path: '/dashboard/ventas' },
+    { id: 'productos', label: 'Productos', icon: ShoppingBag, path: '/dashboard/productos' },
     { id: 'inventario', label: 'Inventario Actual', icon: Package, path: '/dashboard/inventario' },
     { id: 'sucursales', label: 'Sucursales', icon: Building2, path: '/dashboard/sucursales' },
     { id: 'facturas', label: 'Facturas', icon: FileText, path: '/dashboard/facturas' },
