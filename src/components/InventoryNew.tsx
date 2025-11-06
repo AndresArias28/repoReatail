@@ -25,6 +25,7 @@ import {
 } from './ui/select';
 import { useInventory, useLowStockProducts } from '../hooks/useInventory';
 import { useBranches } from '../hooks/useBranches';
+import { useAuth } from '../context/AuthContext';
 
 // Datos mock como fallback (estructura real del backend)
 const MOCK_INVENTORY = [
@@ -92,18 +93,26 @@ const MOCK_INVENTORY = [
 
 export function InventoryNew() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSucursal, setSelectedSucursal] = useState<number | undefined>();
+  const [selectedSucursal, setSelectedSucursal] = useState<number | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
-  const perPage = 10;
+  const itemsPerPage = 10;
+  
+  // Obtener usuario autenticado
+  const { user } = useAuth();
+  const isEmpleado = user?.rol === 'empleado';
+  const sucursalEmpleado = user?.idSucursal;
+  
+  // Si es empleado, filtrar automáticamente por su sucursal
+  const sucursalFiltro = isEmpleado ? sucursalEmpleado : selectedSucursal;
 
-  // Cargar datos
-  const { data: sucursales } = useBranches();
+  // Cargar datos reales
   const { data: inventoryData, loading, meta } = useInventory({
     page: currentPage,
-    per_page: perPage,
-    idSucursal: selectedSucursal,
+    per_page: itemsPerPage,
+    idSucursal: sucursalFiltro,
     search: searchTerm,
   });
+  const { data: sucursales } = useBranches();
 
   // Debug: Ver qué datos llegan del backend
   console.log('📦 Inventory Data:', inventoryData);
@@ -205,24 +214,39 @@ export function InventoryNew() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Select
-              value={selectedSucursal?.toString() || 'todas'}
-              onValueChange={(value) =>
-                setSelectedSucursal(value === 'todas' ? undefined : parseInt(value))
-              }
-            >
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Sucursal" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todas">Todas las sucursales</SelectItem>
-                {sucursales.map((sucursal) => (
-                  <SelectItem key={sucursal.id} value={sucursal.id.toString()}>
-                    {sucursal.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            
+            {/* Selector de sucursal (solo para administradores) */}
+            {isEmpleado ? (
+              // Empleado: Mostrar su sucursal asignada
+              <div className="flex items-center gap-2 rounded-md border border-input bg-gray-50 px-3 py-2">
+                <span className="text-sm font-medium">
+                  {sucursales.find(s => s.id === sucursalEmpleado)?.nombre || `Sucursal #${sucursalEmpleado}`}
+                </span>
+                <Badge variant="secondary" className="text-xs">
+                  Mi Sucursal
+                </Badge>
+              </div>
+            ) : (
+              // Administrador: Selector de sucursales
+              <Select
+                value={selectedSucursal?.toString() || 'todas'}
+                onValueChange={(value) =>
+                  setSelectedSucursal(value === 'todas' ? undefined : parseInt(value))
+                }
+              >
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Sucursal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todas">Todas las sucursales</SelectItem>
+                  {sucursales.map((sucursal) => (
+                    <SelectItem key={sucursal.id} value={sucursal.id.toString()}>
+                      {sucursal.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           {/* Tabla */}
@@ -235,8 +259,8 @@ export function InventoryNew() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ID Producto</TableHead>
-                    <TableHead>ID Sucursal</TableHead>
+                    <TableHead>Producto</TableHead>
+                    <TableHead>Sucursal</TableHead>
                     <TableHead>Stock</TableHead>
                     <TableHead>Estado</TableHead>
                   </TableRow>
@@ -245,10 +269,12 @@ export function InventoryNew() {
                   {displayData.map((item, index) => (
                     <TableRow key={item.idInventario || `inventory-${index}`}>
                       <TableCell className="font-medium">
-                        Producto #{item.idproducto}
+                        {item.producto?.nombre || `Producto #${item.idproducto}`}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary">Sucursal #{item.idSucursal}</Badge>
+                        <Badge variant="secondary">
+                          {item.sucursal?.nombre || `Sucursal #${item.idSucursal}`}
+                        </Badge>
                       </TableCell>
                       <TableCell className="font-semibold">{item.stock} unidades</TableCell>
                       <TableCell>{getStockBadge(item.stock)}</TableCell>
