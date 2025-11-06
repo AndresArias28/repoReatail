@@ -43,14 +43,19 @@ class UploadService {
   }
 
   /**
-   * Subir archivo de productos
+   * Subir archivo de productos con inventario
+   * Backend: POST /api/imports/productos
+   * Params: file (Excel), idsucursal (opcional)
    */
-  async uploadProducts(file: File): Promise<ApiResponse<UploadResponse>> {
+  async uploadProducts(file: File, idsucursal?: number): Promise<ApiResponse<UploadResponse>> {
     const formData = new FormData();
     formData.append('file', file);
+    if (idsucursal) {
+      formData.append('idsucursal', idsucursal.toString());
+    }
 
-    const response = await this.axiosInstance.post<ApiResponse<UploadResponse>>(
-      '/api/upload/products',
+    const response = await this.axiosInstance.post(
+      '/api/imports/productos',
       formData,
       {
         headers: {
@@ -59,47 +64,37 @@ class UploadService {
       }
     );
 
-    return response.data;
+    // Mapear respuesta del backend al formato esperado
+    const backendData = response.data;
+    return {
+      success: backendData.status === 'ok' || backendData.status === 'partial',
+      data: {
+        success: backendData.status === 'ok' || backendData.status === 'partial',
+        message: backendData.status === 'ok' 
+          ? `Carga exitosa: ${backendData.inserted} productos creados, ${backendData.updated} actualizados`
+          : backendData.status === 'partial'
+          ? `Carga parcial: ${backendData.inserted + backendData.updated} procesados, ${backendData.errors} errores`
+          : 'Error en la carga',
+        processed: (backendData.inserted || 0) + (backendData.updated || 0),
+        errors: backendData.errors || 0,
+        errorDetails: (backendData.details || []).map((d: any) => ({
+          row: d.row,
+          error: d.error
+        }))
+      }
+    };
   }
 
   /**
-   * Subir archivo de inventario
+   * NOTA: Los endpoints de inventario y ventas no están implementados en el backend
+   * El endpoint de productos maneja tanto productos como inventario si se pasa idsucursal
    */
   async uploadInventory(file: File): Promise<ApiResponse<UploadResponse>> {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await this.axiosInstance.post<ApiResponse<UploadResponse>>(
-      '/api/upload/inventory',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
-
-    return response.data;
+    throw new Error('Endpoint no implementado. Use uploadProducts con idsucursal.');
   }
 
-  /**
-   * Subir archivo de ventas/facturas
-   */
   async uploadSales(file: File): Promise<ApiResponse<UploadResponse>> {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await this.axiosInstance.post<ApiResponse<UploadResponse>>(
-      '/api/upload/sales',
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      }
-    );
-
-    return response.data;
+    throw new Error('Endpoint no implementado en el backend.');
   }
 
   /**
@@ -152,22 +147,22 @@ class UploadService {
    */
   validateFile(file: File): { valid: boolean; error?: string } {
     // Validar extensión
-    const validExtensions = ['.csv', '.xlsx', '.xls'];
+    const validExtensions = ['.xlsx', '.xls'];
     const extension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     
     if (!validExtensions.includes(extension)) {
       return {
         valid: false,
-        error: 'Formato de archivo no válido. Use CSV o Excel (.xlsx, .xls)',
+        error: 'Formato de archivo no válido. Use Excel (.xlsx, .xls)',
       };
     }
 
-    // Validar tamaño (máximo 10MB)
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    // Validar tamaño (máximo 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
       return {
         valid: false,
-        error: 'El archivo es demasiado grande. Tamaño máximo: 10MB',
+        error: 'El archivo es demasiado grande. Tamaño máximo: 5MB',
       };
     }
 
@@ -175,14 +170,18 @@ class UploadService {
   }
 
   /**
-   * Descargar plantilla de ejemplo
+   * Descargar plantilla de ejemplo (generada localmente)
    */
   async downloadTemplate(type: 'products' | 'inventory' | 'sales'): Promise<void> {
-    const response = await this.axiosInstance.get(`/api/upload/template/${type}`, {
-      responseType: 'blob',
-    });
+    let csvContent = '';
+    
+    if (type === 'products') {
+      csvContent = 'Subcategoría,Nombre,Marca,Precio,Talla,Descripción,Stock\n';
+      csvContent += 'BUZOS Hombre,Buzo Ejemplo,Nike,120000,M,Descripción del producto,30\n';
+      csvContent += 'ABRIGO Hombre,Abrigo Ejemplo,Adidas,150000,L,Descripción del producto,25\n';
+    }
 
-    const blob = new Blob([response.data]);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;

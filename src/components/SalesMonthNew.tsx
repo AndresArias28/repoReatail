@@ -81,9 +81,9 @@ export function SalesMonthNew() {
             
             {/* Filtro de Sucursal */}
             <Select
-              value={filtros.idsucursal?.toString() || 'todas'}
+              value={filtros.idSucursal?.toString() || 'todas'}
               onValueChange={(value) =>
-                setFiltros({ ...filtros, idsucursal: value === 'todas' ? undefined : parseInt(value) })
+                setFiltros({ ...filtros, idSucursal: value === 'todas' ? undefined : parseInt(value) })
               }
             >
               <SelectTrigger className="w-[200px]">
@@ -92,7 +92,7 @@ export function SalesMonthNew() {
               <SelectContent>
                 <SelectItem value="todas">Todas las sucursales</SelectItem>
                 {sucursales.map((sucursal) => (
-                  <SelectItem key={sucursal.idsucursal} value={sucursal.idsucursal.toString()}>
+                  <SelectItem key={sucursal.id} value={sucursal.id.toString()}>
                     {sucursal.nombre}
                   </SelectItem>
                 ))}

@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from './ui/select';
 import { uploadService, type UploadPreview } from '../services/upload.service';
+import { useBranches } from '../hooks/useBranches';
 import {
   Table,
   TableBody,
@@ -51,12 +52,16 @@ interface UploadResult {
 export function UploadDataNew() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadType, setUploadType] = useState<UploadType>('products');
+  const [selectedSucursal, setSelectedSucursal] = useState<number | undefined>(undefined);
   const [uploading, setUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [preview, setPreview] = useState<UploadPreview | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Cargar sucursales
+  const { data: sucursales, loading: loadingSucursales } = useBranches();
 
   const handleDrag = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -122,7 +127,7 @@ export function UploadDataNew() {
       
       switch (uploadType) {
         case 'products':
-          response = await uploadService.uploadProducts(selectedFile);
+          response = await uploadService.uploadProducts(selectedFile, selectedSucursal);
           break;
         case 'inventory':
           response = await uploadService.uploadInventory(selectedFile);
@@ -177,25 +182,54 @@ export function UploadDataNew() {
     <div className="flex flex-col gap-6">
       <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle>Carga de Datos</CardTitle>
+          <CardTitle>Carga Masiva de Productos</CardTitle>
           <p className="text-sm text-gray-600">
-            Importa archivos CSV o Excel con información de productos, inventario o ventas
+            Importa archivos Excel con información de productos y actualiza el inventario de tus sucursales
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Selector de tipo de carga */}
-          <div>
-            <label className="mb-2 block text-sm font-medium">Tipo de Datos</label>
-            <Select value={uploadType} onValueChange={(value) => setUploadType(value as UploadType)}>
-              <SelectTrigger className="w-full md:w-[300px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="products">Productos</SelectItem>
-                <SelectItem value="inventory">Inventario</SelectItem>
-                <SelectItem value="sales">Ventas/Facturas</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium">Tipo de Datos</label>
+              <Select value={uploadType} onValueChange={(value) => setUploadType(value as UploadType)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="products">Productos con Inventario</SelectItem>
+                  {/* <SelectItem value="inventory" disabled>Inventario (Próximamente)</SelectItem>
+                  <SelectItem value="sales" disabled>Ventas/Facturas (Próximamente)</SelectItem> */}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Selector de sucursal */}
+            <div>
+              <label className="mb-2 block text-sm font-medium">
+                Sucursal <span className="text-xs text-gray-500">(Opcional - para actualizar stock)</span>
+              </label>
+              <Select 
+                value={selectedSucursal?.toString() || 'ninguna'} 
+                onValueChange={(value) => setSelectedSucursal(value === 'ninguna' ? undefined : parseInt(value))}
+                disabled={loadingSucursales}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Sin sucursal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ninguna">Sin sucursal (solo productos)</SelectItem>
+                  {sucursales.map((sucursal) => (
+                    <SelectItem key={sucursal.id} value={sucursal.id.toString()}>
+                      {sucursal.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="mt-1 text-xs text-gray-500">
+                Si seleccionas una sucursal, se actualizará el stock según la columna "Stock" del Excel
+              </p>
+            </div>
           </div>
 
           {/* Área de arrastre */}
@@ -220,7 +254,7 @@ export function UploadDataNew() {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".csv,.xlsx,.xls"
+              accept=".xlsx,.xls"
               onChange={handleFileInput}
               className="hidden"
             />
@@ -232,7 +266,7 @@ export function UploadDataNew() {
               Seleccionar Archivo
             </Button>
             <p className="mt-4 text-xs text-gray-500">
-              Formatos soportados: .csv, .xlsx, .xls (Máximo 10MB)
+              Formatos soportados: .xlsx, .xls (Máximo 5MB)
             </p>
           </div>
 
@@ -377,73 +411,34 @@ export function UploadDataNew() {
             </Card>
           )}
 
-          {/* Plantillas descargables */}
+          {/* Plantilla descargable */}
           <div>
-            <h3 className="mb-3 text-lg font-semibold">Plantillas Descargables</h3>
+            <h3 className="mb-3 text-lg font-semibold">Plantilla de Ejemplo</h3>
             <p className="mb-4 text-sm text-gray-600">
-              Descarga nuestras plantillas para facilitar la importación de datos
+              Descarga la plantilla para ver el formato correcto de importación
             </p>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-              <Card className="border shadow-sm transition-shadow hover:shadow-md">
-                <CardContent className="flex items-center gap-4 p-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#0071BC]/10">
-                    <FileSpreadsheet className="h-6 w-6 text-[#0071BC]" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium">Productos</p>
-                    <p className="text-xs text-gray-500">CSV (.csv)</p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => handleDownloadTemplate('products')}
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border shadow-sm transition-shadow hover:shadow-md">
-                <CardContent className="flex items-center gap-4 p-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#009245]/10">
-                    <FileText className="h-6 w-6 text-[#009245]" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium">Inventario</p>
-                    <p className="text-xs text-gray-500">CSV (.csv)</p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => handleDownloadTemplate('inventory')}
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card className="border shadow-sm transition-shadow hover:shadow-md">
-                <CardContent className="flex items-center gap-4 p-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#F7931E]/10">
-                    <FileSpreadsheet className="h-6 w-6 text-[#F7931E]" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium">Ventas</p>
-                    <p className="text-xs text-gray-500">Excel (.xlsx)</p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2"
-                    onClick={() => handleDownloadTemplate('sales')}
-                  >
-                    <Download className="h-4 w-4" />
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+            <Card className="border shadow-sm transition-shadow hover:shadow-md">
+              <CardContent className="flex items-center gap-4 p-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#0071BC]/10">
+                  <FileSpreadsheet className="h-6 w-6 text-[#0071BC]" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium">Productos con Inventario</p>
+                  <p className="text-xs text-gray-500">
+                    Columnas: Subcategoría, Nombre, Marca, Precio, Talla, Descripción, Stock
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => handleDownloadTemplate('products')}
+                >
+                  <Download className="h-4 w-4" />
+                  Descargar CSV
+                </Button>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Instrucciones */}
@@ -454,11 +449,13 @@ export function UploadDataNew() {
                 <div>
                   <p className="font-medium text-gray-900">Instrucciones de Carga</p>
                   <ul className="mt-2 space-y-1 text-sm text-gray-700">
-                    <li>• Descarga la plantilla correspondiente al tipo de datos</li>
-                    <li>• Completa los datos siguiendo el formato de la plantilla</li>
-                    <li>• No modifiques los nombres de las columnas</li>
-                    <li>• Asegúrate de que todos los campos requeridos estén completos</li>
-                    <li>• El archivo no debe exceder los 10MB</li>
+                    <li>• El archivo debe ser Excel (.xlsx, .xls) con una hoja llamada "Productos"</li>
+                    <li>• <strong>Columnas requeridas:</strong> Subcategoría, Nombre, Precio</li>
+                    <li>• <strong>Columnas opcionales:</strong> Marca, Talla, Descripción, Stock</li>
+                    <li>• La Subcategoría debe existir previamente en el sistema</li>
+                    <li>• Si seleccionas una sucursal, la columna Stock actualizará el inventario</li>
+                    <li>• Los productos existentes (mismo nombre) se actualizarán automáticamente</li>
+                    <li>• El archivo no debe exceder los 5MB</li>
                   </ul>
                 </div>
               </div>

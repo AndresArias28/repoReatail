@@ -29,9 +29,9 @@ import { useBranches } from '../hooks/useBranches';
 // Datos mock como fallback (estructura real del backend)
 const MOCK_INVENTORY = [
   { 
-    idinventario: 1, 
+    idInventario: 1, 
     idproducto: 1, 
-    idsucursal: 1,
+    idSucursal: 1,
     stock: 145, 
     producto: { 
       nombre: 'T-Shirt Básica Blanca', 
@@ -49,9 +49,9 @@ const MOCK_INVENTORY = [
     }
   },
   { 
-    idinventario: 2, 
+    idInventario: 2, 
     idproducto: 2, 
-    idsucursal: 1,
+    idSucursal: 1,
     stock: 23, 
     producto: { 
       nombre: 'Jean Skinny Azul', 
@@ -69,9 +69,9 @@ const MOCK_INVENTORY = [
     }
   },
   { 
-    idinventario: 3, 
+    idInventario: 3, 
     idproducto: 3, 
-    idsucursal: 2,
+    idSucursal: 2,
     stock: 8, 
     producto: { 
       nombre: 'Buzo con Capucha Negro', 
@@ -217,7 +217,7 @@ export function InventoryNew() {
               <SelectContent>
                 <SelectItem value="todas">Todas las sucursales</SelectItem>
                 {sucursales.map((sucursal) => (
-                  <SelectItem key={sucursal.idSucursal} value={sucursal.idSucursal.toString()}>
+                  <SelectItem key={sucursal.id} value={sucursal.id.toString()}>
                     {sucursal.nombre}
                   </SelectItem>
                 ))}
@@ -243,12 +243,12 @@ export function InventoryNew() {
                 </TableHeader>
                 <TableBody>
                   {displayData.map((item, index) => (
-                    <TableRow key={item.id || `inventory-${index}`}>
+                    <TableRow key={item.idInventario || `inventory-${index}`}>
                       <TableCell className="font-medium">
                         Producto #{item.idproducto}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary">Sucursal #{item.idsucursal}</Badge>
+                        <Badge variant="secondary">Sucursal #{item.idSucursal}</Badge>
                       </TableCell>
                       <TableCell className="font-semibold">{item.stock} unidades</TableCell>
                       <TableCell>{getStockBadge(item.stock)}</TableCell>

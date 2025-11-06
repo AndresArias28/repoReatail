@@ -22,9 +22,9 @@ export interface Municipio {
 }
 
 export interface Sucursal {
-  idSucursal: number;
+  id: number;              // Backend: idsucursal mapeado a id
   idmunicipio: number;
-  NIT: string;
+  nit: string;             // Backend: nit (minúsculas)
   nombre: string;
   direccion: string;
   email: string;

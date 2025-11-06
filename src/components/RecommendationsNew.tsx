@@ -165,7 +165,7 @@ export function RecommendationsNew() {
               <SelectContent>
                 <SelectItem value="todas">Todas las sucursales</SelectItem>
                 {sucursales.map((sucursal) => (
-                  <SelectItem key={sucursal.idSucursal} value={sucursal.idSucursal.toString()}>
+                  <SelectItem key={sucursal.id} value={sucursal.id.toString()}>
                     {sucursal.nombre}
                   </SelectItem>
                 ))}
