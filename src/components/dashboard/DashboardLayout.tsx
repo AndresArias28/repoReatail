@@ -11,7 +11,8 @@ import {
   HelpCircle,
   SettingsIcon,
   User,
-  BarChart3
+  BarChart3,
+  FileText
 } from 'lucide-react';
 import { Button } from '../ui/button';
 
@@ -23,6 +24,7 @@ export function DashboardLayout() {
     { id: 'dashboard', label: 'Dashboard Principal', icon: LayoutDashboard, path: '/dashboard' },
     { id: 'ventas', label: 'Ventas por Mes', icon: TrendingUp, path: '/dashboard/ventas' },
     { id: 'inventario', label: 'Inventario Actual', icon: Package, path: '/dashboard/inventario' },
+    { id: 'facturas', label: 'Facturas', icon: FileText, path: '/dashboard/facturas' },
     { id: 'recomendaciones', label: 'Recomendaciones', icon: Lightbulb, path: '/dashboard/recomendaciones' },
     { id: 'carga', label: 'Carga de Datos', icon: Upload, path: '/dashboard/carga' },
     { id: 'configuracion', label: 'Configuración', icon: Settings, path: '/dashboard/configuracion' },
