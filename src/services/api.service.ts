@@ -36,7 +36,23 @@ class ApiService {
       (response) => response,
       (error: AxiosError) => {
         if (error.response) {
-          // El servidor respondió con un código de error
+          const status = error.response.status;
+          
+          // Si es 401, el token expiró o es inválido
+          if (status === 401) {
+            console.warn('⚠️ Token inválido o expirado. Redirigiendo al login...');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user');
+            
+            // Redirigir al login si no estamos ya ahí
+            if (!window.location.pathname.includes('/login')) {
+              window.location.href = '/login';
+            }
+            
+            throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+          }
+          
+          // Otros errores
           const message = (error.response.data as any)?.message || error.message;
           throw new Error(message);
         } else if (error.request) {

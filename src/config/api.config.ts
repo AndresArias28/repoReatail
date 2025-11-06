@@ -67,10 +67,13 @@ export const API_ENDPOINTS = {
     UPDATE: (id: number) => `/clientes/actualizar/${id}`,
   },
 
-  // Sucursales (endpoints que podrían no existir aún)
+  // Sucursales (NOTA: Backend usa /sucursal en singular)
   BRANCHES: {
-    LIST: '/sucursales/obtener',
-    BY_ID: (id: number) => `/sucursales/obtenerPorId/${id}`,
+    LIST: '/sucursal/obtener',
+    BY_ID: (id: number) => `/sucursal/obtenerPorId/${id}`,
+    CREATE: '/sucursal/crear',
+    UPDATE: (id: number) => `/sucursal/actualizar/${id}`,
+    DELETE: (id: number) => `/sucursal/eliminar/${id}`,
   },
 
   // Categorías (endpoints que podrían no existir aún)

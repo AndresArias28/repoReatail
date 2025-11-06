@@ -74,9 +74,15 @@ export function SalesMonthNew() {
             
             {/* Filtro de Sucursal */}
             <Select
+
               value={filtros.idSucursal != null ? String(filtros.idSucursal) : 'todas'}
               onValueChange={(value) =>
                 setFiltros({ ...filtros, idSucursal: value === 'todas' ? undefined : parseInt(value, 10) })
+
+              value={filtros.idSucursal?.toString() || 'todas'}
+              onValueChange={(value) =>
+                setFiltros({ ...filtros, idSucursal: value === 'todas' ? undefined : parseInt(value) })
+
               }
             >
               <SelectTrigger className="w-[200px]">
@@ -84,6 +90,7 @@ export function SalesMonthNew() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todas">Todas las sucursales</SelectItem>
+
                 {Array.isArray(sucursales)
                   ? sucursales
                       .filter((s) => typeof (s as any)?.idSucursal === 'number' && !Number.isNaN((s as any).idSucursal))
@@ -93,6 +100,13 @@ export function SalesMonthNew() {
                         </SelectItem>
                       ))
                   : null}
+
+                {sucursales.map((sucursal) => (
+                  <SelectItem key={sucursal.id} value={sucursal.id.toString()}>
+                    {sucursal.nombre}
+                  </SelectItem>
+                ))}
+
               </SelectContent>
             </Select>
           </div>
