@@ -26,6 +26,7 @@ import {
 } from './ui/select';
 import { uploadService, type UploadPreview } from '../services/upload.service';
 import { useBranches } from '../hooks/useBranches';
+import { useAuth } from '../context/AuthContext';
 import {
   Table,
   TableBody,
@@ -60,7 +61,12 @@ export function UploadDataNew() {
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Cargar sucursales
+  // Obtener usuario autenticado
+  const { user } = useAuth();
+  const isEmpleado = user?.rol === 'empleado';
+  const sucursalEmpleado = user?.idSucursal;
+  
+  // Cargar sucursales (solo para administradores)
   const { data: sucursales, loading: loadingSucursales } = useBranches();
 
   const handleDrag = (e: DragEvent<HTMLDivElement>) => {
@@ -125,9 +131,12 @@ export function UploadDataNew() {
     try {
       let response;
       
+      // Si es empleado, usar su sucursal asignada; si es admin, usar la seleccionada
+      const idsucursalFinal = isEmpleado ? sucursalEmpleado : selectedSucursal;
+      
       switch (uploadType) {
         case 'products':
-          response = await uploadService.uploadProducts(selectedFile, selectedSucursal);
+          response = await uploadService.uploadProducts(selectedFile, idsucursalFinal);
           break;
         case 'inventory':
           response = await uploadService.uploadInventory(selectedFile);
@@ -204,30 +213,48 @@ export function UploadDataNew() {
               </Select>
             </div>
 
-            {/* Selector de sucursal */}
+            {/* Selector de sucursal (solo para administradores) */}
             <div>
               <label className="mb-2 block text-sm font-medium">
-                Sucursal <span className="text-xs text-gray-500">(Opcional - para actualizar stock)</span>
+                Sucursal {!isEmpleado && <span className="text-xs text-gray-500">(Opcional - para actualizar stock)</span>}
               </label>
-              <Select 
-                value={selectedSucursal?.toString() || 'ninguna'} 
-                onValueChange={(value) => setSelectedSucursal(value === 'ninguna' ? undefined : parseInt(value))}
-                disabled={loadingSucursales}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sin sucursal" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ninguna">Sin sucursal (solo productos)</SelectItem>
-                  {sucursales.map((sucursal) => (
-                    <SelectItem key={sucursal.id} value={sucursal.id.toString()}>
-                      {sucursal.nombre}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              
+              {isEmpleado ? (
+                // Empleado: Mostrar su sucursal asignada (solo lectura)
+                <div className="flex h-10 w-full items-center rounded-md border border-input bg-gray-50 px-3 py-2 text-sm">
+                  <span className="font-medium text-gray-900">
+                    {sucursales.find(s => s.id === sucursalEmpleado)?.nombre || `Sucursal #${sucursalEmpleado}`}
+                  </span>
+                  <Badge variant="secondary" className="ml-2 text-xs">
+                    Asignada
+                  </Badge>
+                </div>
+              ) : (
+                // Administrador: Selector de sucursal
+                <Select 
+                  value={selectedSucursal?.toString() || 'ninguna'} 
+                  onValueChange={(value) => setSelectedSucursal(value === 'ninguna' ? undefined : parseInt(value))}
+                  disabled={loadingSucursales}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sin sucursal" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ninguna">Sin sucursal (solo productos)</SelectItem>
+                    {sucursales.map((sucursal) => (
+                      <SelectItem key={sucursal.id} value={sucursal.id.toString()}>
+                        {sucursal.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              
               <p className="mt-1 text-xs text-gray-500">
-                Si seleccionas una sucursal, se actualizará el stock según la columna "Stock" del Excel
+                {isEmpleado 
+                  ? 'Los productos se cargarán automáticamente a tu sucursal asignada con el stock del Excel'
+                  : 'Si seleccionas una sucursal, se actualizará el stock según la columna "Stock" del Excel'
+                }
               </p>
             </div>
           </div>
