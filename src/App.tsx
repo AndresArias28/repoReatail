@@ -8,12 +8,16 @@ import { RecommendationsNew } from './components/RecommendationsNew';
 import { UploadDataNew } from './components/UploadDataNew';
 import { Invoices } from './components/Invoices';
 import { Settings } from './components/Settings';
+import { AdminPage } from './pages/Admin';
+import { Login } from './pages/Login';
 
 export default function App() {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<DashboardNew />} />
           <Route path="ventas" element={<SalesMonthNew />} />
