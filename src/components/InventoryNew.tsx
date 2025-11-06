@@ -105,8 +105,12 @@ export function InventoryNew() {
     search: searchTerm,
   });
 
-  // Usar datos de API o fallback a mock (con validación)
-  const displayData = inventoryData && inventoryData.length > 0 ? inventoryData : MOCK_INVENTORY;
+  // Debug: Ver qué datos llegan del backend
+  console.log('📦 Inventory Data:', inventoryData);
+  console.log('📊 Meta:', meta);
+
+  // Usar SOLO datos reales del backend (sin mock)
+  const displayData = inventoryData || [];
 
   // Calcular estadísticas
   const statsAlto = displayData.filter(item => {
@@ -231,36 +235,22 @@ export function InventoryNew() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Producto</TableHead>
-                    <TableHead>Marca</TableHead>
-                    <TableHead>Categoría</TableHead>
-                    <TableHead>Talla</TableHead>
-                    <TableHead>Precio</TableHead>
+                    <TableHead>ID Producto</TableHead>
+                    <TableHead>ID Sucursal</TableHead>
                     <TableHead>Stock</TableHead>
-                    <TableHead>Sucursal</TableHead>
                     <TableHead>Estado</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {displayData.map((item, index) => (
-                    <TableRow key={item.idinventario || `inventory-${index}`}>
+                    <TableRow key={item.id || `inventory-${index}`}>
                       <TableCell className="font-medium">
-                        {item.producto?.nombre || 'N/A'}
-                      </TableCell>
-                      <TableCell>{item.producto?.marca || 'N/A'}</TableCell>
-                      <TableCell>
-                        {item.producto?.subcategoria?.categoria?.nombre_categoria || 'N/A'}
+                        Producto #{item.idproducto}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{item.producto?.talla || 'N/A'}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        ${item.producto?.precio ? Number(item.producto.precio).toLocaleString() : '0'}
+                        <Badge variant="secondary">Sucursal #{item.idsucursal}</Badge>
                       </TableCell>
                       <TableCell className="font-semibold">{item.stock} unidades</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{item.sucursal?.nombre || 'N/A'}</Badge>
-                      </TableCell>
                       <TableCell>{getStockBadge(item.stock)}</TableCell>
                     </TableRow>
                   ))}

@@ -28,13 +28,21 @@ export const inventoryService = {
       params
     );
     
+    // Debug: Ver respuesta del backend
+    console.log('🔍 Backend Response:', response);
+    console.log('🔍 Is Array?', Array.isArray(response));
+    
     // El backend devuelve un array simple, no paginado
     // Crear respuesta paginada manualmente
     const data = Array.isArray(response) ? response : [];
+    console.log('📦 Data after validation:', data);
+    
     const page = params?.page || 1;
     const perPage = params?.per_page || 10;
     const start = (page - 1) * perPage;
     const paginatedData = data.slice(start, start + perPage);
+    
+    console.log('📄 Paginated Data:', paginatedData);
     
     return {
       data: paginatedData,
