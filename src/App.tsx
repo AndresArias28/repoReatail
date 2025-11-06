@@ -1,44 +1,40 @@
-import { useState } from 'react';
-import { Header } from './components/Header';
-import { Sidebar } from './components/Sidebar';
-import { Dashboard } from './components/Dashboard';
-import { Inventory } from './components/Inventory';
-import { Recommendations } from './components/Recommendations';
-import { UploadData } from './components/UploadData';
-import { SalesMonth } from './components/SalesMonth';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import { LandingPage } from './components/LandingPage';
+import { DashboardNew } from './components/DashboardNew';
+import { DashboardLayout } from './components/dashboard/DashboardLayout';
+import { SalesMonthNew } from './components/SalesMonthNew';
+import { InventoryNew } from './components/InventoryNew';
+import { BranchesManagement } from './components/BranchesManagement';
+import { RecommendationsNew } from './components/RecommendationsNew';
+import { UploadDataNew } from './components/UploadDataNew';
+import { Invoices } from './components/Invoices';
 import { Settings } from './components/Settings';
+import { AdminPage } from './pages/AdminNew';
+import { Login } from './pages/Login';
+import { Toaster } from './components/ui/sonner';
 
 export default function App() {
-  const [activeView, setActiveView] = useState('dashboard');
-
-  const renderView = () => {
-    switch (activeView) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'sales':
-        return <SalesMonth />;
-      case 'inventory':
-        return <Inventory />;
-      case 'recommendations':
-        return <Recommendations />;
-      case 'upload':
-        return <UploadData />;
-      case 'settings':
-        return <Settings />;
-      default:
-        return <Dashboard />;
-    }
-  };
-
   return (
-    <div className="flex h-screen flex-col bg-[#ECEFF1]">
-      <Header />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar activeView={activeView} onViewChange={setActiveView} />
-        <main className="flex-1 overflow-y-auto p-6">
-          {renderView()}
-        </main>
-      </div>
-    </div>
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={<DashboardNew />} />
+            <Route path="ventas" element={<SalesMonthNew />} />
+            <Route path="inventario" element={<InventoryNew />} />
+            <Route path="sucursales" element={<BranchesManagement />} />
+            <Route path="recomendaciones" element={<RecommendationsNew />} />
+            <Route path="facturas" element={<Invoices />} />
+            <Route path="carga" element={<UploadDataNew />} />
+            <Route path="configuracion" element={<Settings />} />
+          </Route>
+        </Routes>
+      </Router>
+      <Toaster position="top-right" richColors />
+    </AuthProvider>
   );
 }
