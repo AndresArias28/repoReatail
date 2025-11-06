@@ -115,11 +115,32 @@ src/
 - Promedio diario de ventas
 - Unidades vendidas
 
-### 4. **Autenticación**
+### 4. **Panel de Administración** (`/admin`)
+- **Tab Empleados**: CRUD completo de usuarios
+  - Crear empleados con validación
+  - Asignar rol (administrador/empleado)
+  - Asignar sucursal
+  - Ver/ocultar contraseñas
+  - Editar y eliminar empleados
+- **Tab Sucursales**: CRUD completo de sucursales
+  - Crear sucursales con todos los datos
+  - Editar información de sucursales
+  - Eliminar sucursales
+  - Visualización en tabla
+- **Tab Configuración**:
+  - Información personal del administrador
+  - Datos de cuenta (email, rol, ID)
+  - Estadísticas del sistema (empleados, sucursales)
+  - Nota de seguridad
+- **Header con información del usuario**
+- **Botón de cerrar sesión**
+
+### 5. **Autenticación**
 - Login con JWT
 - Gestión de sesión
 - Protección de rutas privadas
-- Logout seguro
+- Logout seguro en dashboard y admin
+- Visualización de usuario logueado en header
 
 ## 🛠️ Stack Tecnológico
 
@@ -175,23 +196,33 @@ Componente → Hook → Service → API Backend
 ## 🔮 Roadmap y Desarrollo Futuro
 
 ### ✅ Implementado
-- [x] Sistema de autenticación JWT
+- [x] Sistema de autenticación JWT completo
 - [x] Dashboard con analytics en tiempo real
-- [x] Gestión de inventario con filtros
+- [x] Gestión de inventario con filtros y paginación
 - [x] Análisis de ventas mensuales
-- [x] Migración de Fetch a Axios
-- [x] Diseño responsive
-- [x] Integración con backend AdonisJS
+- [x] **CRUD de Sucursales** completo (crear, editar, eliminar)
+- [x] **Panel de Administración** con tabs
+  - Gestión de empleados
+  - Gestión de sucursales
+  - Panel de configuración del admin
+- [x] **Cerrar sesión** en dashboard y panel admin
+- [x] Visualización de información del usuario logueado
+- [x] Sistema de roles (administrador, empleado)
+- [x] Filtrado por sucursal según rol del usuario
+- [x] Migración completa de Fetch a Axios
+- [x] Diseño responsive con Tailwind CSS
+- [x] Integración completa con backend AdonisJS
+- [x] Componentes UI con shadcn/ui
+- [x] Manejo de errores centralizado
 
 ### 🚧 En Desarrollo
 - [ ] **Multi-Tenant**: Soporte para múltiples empresas
   - Aislamiento de datos por tenant
   - Subdominios personalizados
   - Configuración por tenant
-- [ ] Gestión completa de sucursales (CRUD)
-- [ ] Módulo de facturación
+- [ ] Módulo de facturación completo
 - [ ] Reportes exportables (PDF/Excel)
-- [ ] Gestión de usuarios y roles
+- [ ] Gestión avanzada de permisos por rol
 
 ### 📋 Planificado
 - [ ] **Multi-Tenant Avanzado**:
