@@ -1,8 +1,8 @@
-// ============================================
+          // ============================================
 // INVENTARIO CON INTEGRACIÓN API
 // ============================================
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import {
   Table,
@@ -14,7 +14,7 @@ import {
 } from './ui/table';
 import { Badge } from './ui/badge';
 import { Button } from './ui/button';
-import { FileDown, FileSpreadsheet, Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, Plus, Check } from 'lucide-react';
 import { Input } from './ui/input';
 import {
   Select,
@@ -25,6 +25,11 @@ import {
 } from './ui/select';
 import { useInventory, useLowStockProducts } from '../hooks/useInventory';
 import { useBranches } from '../hooks/useBranches';
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
+import { productsService } from '../services/products.service';
+import { inventoryService } from '../services/inventory.service';
+
 import { useAuth } from '../context/AuthContext';
 
 // Datos mock como fallback (estructura real del backend)
@@ -95,6 +100,16 @@ export function InventoryNew() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSucursal, setSelectedSucursal] = useState<number | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
+
+  const perPage = 10;
+  const { user } = useAuth();
+
+  const [openAdd, setOpenAdd] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [productSearch, setProductSearch] = useState('');
+  const [stockById, setStockById] = useState<Record<number, number | ''>>({});
+
   const itemsPerPage = 10;
   
   // Obtener usuario autenticado
@@ -104,6 +119,7 @@ export function InventoryNew() {
   
   // Si es empleado, filtrar automáticamente por su sucursal
   const sucursalFiltro = isEmpleado ? sucursalEmpleado : selectedSucursal;
+
 
   // Cargar datos reales
   const { data: inventoryData, loading, meta } = useInventory({
@@ -159,15 +175,45 @@ export function InventoryNew() {
     }
   };
 
-  const handleExportExcel = () => {
-    // TODO: Implementar exportación a Excel
-    console.log('Exportar a Excel');
+  const openAddProducts = async () => {
+    setOpenAdd(true);
+    setLoadingProducts(true);
+    try {
+      const list = await productsService.list();
+      setProducts(Array.isArray(list) ? list : []);
+    } finally {
+      setLoadingProducts(false);
+    }
   };
 
-  const handleExportPDF = () => {
-    // TODO: Implementar exportación a PDF
-    console.log('Exportar a PDF');
+  const filteredProducts = useMemo(() => {
+    if (!productSearch) return products;
+    const q = productSearch.toLowerCase();
+    return products.filter((p: any) =>
+      String(p?.nombre || '').toLowerCase().includes(q) ||
+      String(p?.marca || '').toLowerCase().includes(q) ||
+      String(p?.talla || '').toLowerCase().includes(q)
+    );
+  }, [products, productSearch]);
+
+  const addInventory = async (idproducto: number) => {
+    const stockVal = stockById[idproducto];
+    const idsucursal = (user as any)?.idSucursal ?? (user as any)?.idsucursal ?? (user as any)?.sucursal?.id ?? selectedSucursal;
+    if (!idsucursal || typeof idsucursal !== 'number') {
+      alert('No se pudo determinar la sucursal del usuario. Selecciona una sucursal en el filtro.');
+      return;
+    }
+    const stockNum = typeof stockVal === 'string' ? parseInt(stockVal as any, 10) : stockVal;
+    if (!stockNum || stockNum <= 0) {
+      alert('Ingrese un stock válido (> 0)');
+      return;
+    }
+    await inventoryService.create({ idproducto, idsucursal, stock: stockNum });
+    setStockById((m) => ({ ...m, [idproducto]: '' }));
+    setOpenAdd(false);
   };
+
+  // Sin scoping global: la sucursal se puede elegir libremente (o dejar en 'todas')
 
   return (
     <div className="flex flex-col gap-6">
@@ -181,23 +227,8 @@ export function InventoryNew() {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={handleExportExcel}
-              >
-                <FileSpreadsheet className="h-4 w-4" />
-                Exportar Excel
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2"
-                onClick={handleExportPDF}
-              >
-                <FileDown className="h-4 w-4" />
-                Exportar PDF
+              <Button size="sm" className="gap-2 text-white" style={{ background: 'linear-gradient(to right, #0071BC, #662D91)' }} onClick={openAddProducts}>
+                <Plus className="h-4 w-4" /> Agregar productos
               </Button>
             </div>
           </div>
@@ -313,6 +344,67 @@ export function InventoryNew() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={openAdd} onOpenChange={setOpenAdd}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Agregar productos al inventario</DialogTitle>
+          </DialogHeader>
+          <div className="mb-3">
+            <Input placeholder="Buscar producto por nombre, marca o talla" value={productSearch} onChange={(e) => setProductSearch(e.target.value)} />
+          </div>
+          {loadingProducts ? (
+            <div className="flex h-[200px] items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+            </div>
+          ) : (
+            <div className="rounded-md border max-h-[400px] overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Producto</TableHead>
+                    <TableHead>Marca</TableHead>
+                    <TableHead>Talla</TableHead>
+                    <TableHead>Precio</TableHead>
+                    <TableHead className="text-right">Stock</TableHead>
+                    <TableHead className="text-right">Acción</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredProducts.map((p: any) => (
+                    <TableRow key={p.idproducto || p.id}>
+                      <TableCell className="font-medium">{p.nombre}</TableCell>
+                      <TableCell>{p.marca}</TableCell>
+                      <TableCell>{p.talla}</TableCell>
+                      <TableCell>{p.precio?.toLocaleString?.() ?? p.precio}</TableCell>
+                      <TableCell className="text-right">
+                        <Input
+                          type="number"
+                          className="w-24 ml-auto"
+                          value={(stockById[p.idproducto || p.id] as any) ?? ''}
+                          onChange={(e) => {
+                            const id = (p.idproducto || p.id) as number;
+                            const val = e.target.value === '' ? '' : Number(e.target.value);
+                            setStockById((m) => ({ ...m, [id]: val }));
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button size="sm" className="gap-2" onClick={() => addInventory((p.idproducto || p.id) as number)}>
+                          <Check className="h-4 w-4" /> Agregar
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenAdd(false)}>Cerrar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Resumen rápido */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

@@ -61,7 +61,7 @@ export const authService = {
    * Obtener token almacenado
    */
   getToken(): string | null {
-    return localStorage.getItem('auth_token');
+    return localStorage.getItem('auth_token') || localStorage.getItem('token');
   },
 
   /**
@@ -72,7 +72,17 @@ export const authService = {
     if (!userStr) return null;
     
     try {
-      return JSON.parse(userStr);
+      const parsed = JSON.parse(userStr);
+      // Normalizar idSucursal si viene con otro nombre
+      if (parsed && typeof parsed === 'object') {
+        const idSucursal = parsed.idSucursal ?? parsed.idsucursal ?? parsed?.sucursal?.id;
+        if (typeof idSucursal === 'number') {
+          parsed.idSucursal = idSucursal;
+        }
+        // Persistir normalizado para futuras lecturas
+        localStorage.setItem('user', JSON.stringify(parsed));
+      }
+      return parsed as Usuario;
     } catch {
       return null;
     }
