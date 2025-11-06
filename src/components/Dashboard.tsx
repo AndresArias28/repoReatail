@@ -56,7 +56,7 @@ const monthlyTrend = [
   { mes: 'Oct', ventas: 19200 },
 ];
 
-const COLORS = ['#1E88E5', '#26A69A', '#FFA726', '#EF5350', '#AB47BC'];
+const COLORS = ['#0071BC', '#009245', '#F7931E', '#ED1E79', '#662D91'];
 
 export function Dashboard() {
   return (
@@ -108,7 +108,13 @@ export function Dashboard() {
               </SelectContent>
             </Select>
 
-            <Button variant="outline" className="ml-auto">
+            <Button 
+              variant="outline" 
+              className="ml-auto border-2 hover:text-white"
+              style={{'--hover-bg': 'linear-gradient(to right, #0071BC, #662D91)'} as React.CSSProperties}
+              onMouseEnter={(e) => e.currentTarget.style.background = 'linear-gradient(to right, #0071BC, #662D91)'}
+              onMouseLeave={(e) => e.currentTarget.style.background = ''}
+            >
               Aplicar Filtros
             </Button>
           </div>
@@ -123,7 +129,7 @@ export function Dashboard() {
           icon={DollarSign}
           change="+12.5% vs mes anterior"
           changeType="positive"
-          iconBgColor="bg-green-500"
+          iconBgColor="#009245"
         />
         <KPICard
           title="👕 Productos Más Vendidos"
@@ -131,7 +137,7 @@ export function Dashboard() {
           icon={ShoppingBag}
           change="4,500 unidades"
           changeType="neutral"
-          iconBgColor="bg-[#1E88E5]"
+          iconBgColor="#0071BC"
         />
         <KPICard
           title="📦 Stock Promedio"
@@ -139,7 +145,7 @@ export function Dashboard() {
           icon={Package}
           change="Normal"
           changeType="positive"
-          iconBgColor="bg-[#26A69A]"
+          iconBgColor="#009245"
         />
         <KPICard
           title="🔁 Rotación Mensual"
@@ -147,7 +153,7 @@ export function Dashboard() {
           icon={Repeat}
           change="+3.2% vs mes anterior"
           changeType="positive"
-          iconBgColor="bg-[#FFA726]"
+          iconBgColor="#F7931E"
         />
       </div>
 
@@ -165,7 +171,7 @@ export function Dashboard() {
                 <XAxis dataKey="category" />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="ventas" fill="#1E88E5" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="ventas" fill="#0071BC" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -216,9 +222,9 @@ export function Dashboard() {
               <Line 
                 type="monotone" 
                 dataKey="ventas" 
-                stroke="#1E88E5" 
+                stroke="#0071BC" 
                 strokeWidth={3}
-                dot={{ fill: '#1E88E5', r: 5 }}
+                dot={{ fill: '#0071BC', r: 5 }}
                 activeDot={{ r: 8 }}
               />
             </LineChart>
