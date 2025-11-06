@@ -179,6 +179,7 @@ export interface FiltrosAnalytics {
   subcategoria?: number;
   marca?: string;
   talla?: string;
+  mes?: number;
 }
 
 // ============================================

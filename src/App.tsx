@@ -12,6 +12,7 @@ import { Invoices } from './components/Invoices';
 import { Settings } from './components/Settings';
 import { AdminPage } from './pages/Admin';
 import { Login } from './pages/Login';
+import { Toaster } from './components/ui/sonner';
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
           </Route>
         </Routes>
       </Router>
+      <Toaster position="top-right" richColors />
     </AuthProvider>
   );
 }
