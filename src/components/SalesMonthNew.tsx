@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { TrendingUp, DollarSign, Loader2, ShoppingBag } from 'lucide-react';
+import { TrendingUp, DollarSign, Loader2 } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -16,26 +16,19 @@ import { useTopProducts } from '../hooks/useAnalytics';
 import { useBranches } from '../hooks/useBranches';
 import type { FiltrosAnalytics } from '../types/database.types';
 
-// Datos mock solo para productos (fallback si no hay datos del backend)
-const MOCK_TOP_PRODUCTS = [
-  { nombre: 'T-Shirt Básica Blanca M', cantidad: 450, ventas_totales: 4500 },
-  { nombre: 'Jean Skinny Azul L', cantidad: 320, ventas_totales: 4160 },
-  { nombre: 'Buzo con Capucha Negro', cantidad: 280, ventas_totales: 3920 },
-  { nombre: 'Vestido Floral S', cantidad: 240, ventas_totales: 3360 },
-  { nombre: 'T-Shirt Estampada L', cantidad: 220, ventas_totales: 2200 },
-];
+// Sin datos mock: se mostrará estado vacío si el backend no retorna datos
 
 export function SalesMonthNew() {
   const [filtros, setFiltros] = useState<FiltrosAnalytics>({
-    mes: new Date().getMonth() + 1 // Mes actual (1-12)
+    mes: new Date().getMonth() + 1, // Mes actual (1-12)
   });
 
   // Cargar datos del backend (top 5 productos del mes actual)
   const { data: sucursales } = useBranches();
   const { data: topProducts, loading: loadingTop } = useTopProducts(5, filtros);
 
-  // Usar datos reales del backend
-  const topProductsData = topProducts && topProducts.length > 0 ? topProducts : MOCK_TOP_PRODUCTS;
+  // Usar datos del backend (sin fallback)
+  const topProductsData = Array.isArray(topProducts) ? topProducts : [];
 
   // Calcular métricas basadas en los productos más vendidos del mes actual
   const totalUnidadesVendidas = topProductsData.reduce((sum, item) => sum + (item?.cantidad || 0), 0);
@@ -55,9 +48,9 @@ export function SalesMonthNew() {
             
             {/* Filtro de Mes */}
             <Select
-              value={filtros.mes?.toString() || new Date().getMonth() + 1}
+              value={String(filtros.mes ?? new Date().getMonth() + 1)}
               onValueChange={(value) =>
-                setFiltros({ ...filtros, mes: parseInt(value) })
+                setFiltros({ ...filtros, mes: parseInt(value, 10) })
               }
             >
               <SelectTrigger className="w-[200px]">
@@ -81,9 +74,9 @@ export function SalesMonthNew() {
             
             {/* Filtro de Sucursal */}
             <Select
-              value={filtros.idsucursal?.toString() || 'todas'}
+              value={filtros.idSucursal != null ? String(filtros.idSucursal) : 'todas'}
               onValueChange={(value) =>
-                setFiltros({ ...filtros, idsucursal: value === 'todas' ? undefined : parseInt(value) })
+                setFiltros({ ...filtros, idSucursal: value === 'todas' ? undefined : parseInt(value, 10) })
               }
             >
               <SelectTrigger className="w-[200px]">
@@ -91,11 +84,15 @@ export function SalesMonthNew() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todas">Todas las sucursales</SelectItem>
-                {sucursales.map((sucursal) => (
-                  <SelectItem key={sucursal.idsucursal} value={sucursal.idsucursal.toString()}>
-                    {sucursal.nombre}
-                  </SelectItem>
-                ))}
+                {Array.isArray(sucursales)
+                  ? sucursales
+                      .filter((s) => typeof (s as any)?.idSucursal === 'number' && !Number.isNaN((s as any).idSucursal))
+                      .map((s) => (
+                        <SelectItem key={(s as any).idSucursal} value={String((s as any).idSucursal)}>
+                          {(s as any).nombre}
+                        </SelectItem>
+                      ))
+                  : null}
               </SelectContent>
             </Select>
           </div>
@@ -156,6 +153,10 @@ export function SalesMonthNew() {
           {loadingTop ? (
             <div className="flex h-[200px] items-center justify-center">
               <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            </div>
+          ) : topProductsData.length === 0 ? (
+            <div className="flex h-[200px] items-center justify-center text-sm text-gray-500">
+              No hay datos para el período seleccionado
             </div>
           ) : (
             <div className="space-y-4">

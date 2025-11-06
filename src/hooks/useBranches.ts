@@ -8,16 +8,28 @@ import type { Sucursal } from '../types/database.types';
 
 export function useBranches() {
   const [data, setData] = useState<Sucursal[]>([]);
-  const [loading, setLoading] = useState(false); // No loading porque la ruta no existe
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Ruta /sucursales/obtener NO implementada en el backend
-    // Devolver array vacío para evitar errores
-    setData([]);
-    setLoading(false);
-    setError(null);
-    console.warn('⚠️ useBranches: Ruta /sucursales/obtener no implementada en el backend');
+    let mounted = true;
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await branchesService.getBranches(); // GET /sucursal/obtener
+        if (!mounted) return;
+        setData(Array.isArray(res) ? res : []);
+      } catch (e: any) {
+        if (!mounted) return;
+        setError(e?.message || 'No se pudieron cargar las sucursales');
+        setData([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    load();
+    return () => { mounted = false; };
   }, []);
 
   return { data, loading, error };
