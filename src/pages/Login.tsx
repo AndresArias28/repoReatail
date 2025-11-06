@@ -118,35 +118,7 @@ import { Lock, Mail, Eye, EyeOff, LogIn } from 'lucide-react';
                         </button>
                     </div>
 
-                    {/* Divider */}
-                    <div className="relative my-8">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-white border-opacity-20"></div>
-                        </div>
-                        <div className="relative flex justify-center text-sm">
-                            <span className="px-4 bg-transparent text-white text-opacity-50">
-                                o continúa con
-                            </span>
-                        </div>
-                    </div>
-
-                    {/* Social login buttons */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <button className="py-3 px-4 bg-white bg-opacity-10 backdrop-blur-sm border border-white border-opacity-20 rounded-xl text-white font-medium hover:bg-opacity-15 transition-all duration-300 transform hover:scale-105">
-                            Google
-                        </button>
-                        <button className="py-3 px-4 bg-white bg-opacity-10 backdrop-blur-sm border border-white border-opacity-20 rounded-xl text-white font-medium hover:bg-opacity-15 transition-all duration-300 transform hover:scale-105">
-                            GitHub
-                        </button>
-                    </div>
-
-                    {/* Sign up link */}
-                    <p className="text-center text-white text-opacity-70 mt-8">
-                        ¿No tienes cuenta?{' '}
-                        <button className="text-white font-semibold hover:underline transition-all">
-                            Regístrate aquí
-                        </button>
-                    </p>
+          
                 </div>
             </div>
         </div>
