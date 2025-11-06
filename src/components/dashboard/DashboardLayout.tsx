@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   TrendingUp,
   Package,
+  ShoppingBag,
   Building2,
   Lightbulb,
   Upload,
@@ -25,6 +26,18 @@ export function DashboardLayout() {
   const { user, logout } = useAuth();
   const isEmpleado = user?.rol === 'empleado';
 
+
+  const menuItems = [
+    { id: 'dashboard', label: 'Dashboard Principal', icon: LayoutDashboard, path: '/dashboard' },
+    { id: 'ventas', label: 'Ventas por Mes', icon: TrendingUp, path: '/dashboard/ventas' },
+    { id: 'productos', label: 'Productos', icon: ShoppingBag, path: '/dashboard/productos' },
+    { id: 'inventario', label: 'Inventario Actual', icon: Package, path: '/dashboard/inventario' },
+    { id: 'sucursales', label: 'Sucursales', icon: Building2, path: '/dashboard/sucursales' },
+    { id: 'facturas', label: 'Facturas', icon: FileText, path: '/dashboard/facturas' },
+    { id: 'recomendaciones', label: 'Recomendaciones', icon: Lightbulb, path: '/dashboard/recomendaciones' },
+    { id: 'carga', label: 'Carga de Datos', icon: Upload, path: '/dashboard/carga' },
+    { id: 'configuracion', label: 'Configuración', icon: Settings, path: '/dashboard/configuracion' },
+
   const handleLogout = async () => {
     await logout();
     navigate('/login');
@@ -39,6 +52,7 @@ export function DashboardLayout() {
     { id: 'recomendaciones', label: 'Recomendaciones', icon: Lightbulb, path: '/dashboard/recomendaciones', roles: ['empleado', 'administrador'] },
     { id: 'carga', label: 'Carga de Datos', icon: Upload, path: '/dashboard/carga', roles: ['empleado', 'administrador'] },
     { id: 'configuracion', label: 'Configuración', icon: Settings, path: '/dashboard/configuracion', roles: ['empleado', 'administrador'] },
+
   ];
   
   // Filtrar menú según rol del usuario

@@ -7,6 +7,7 @@ import { SalesMonthNew } from './components/SalesMonthNew';
 import { InventoryNew } from './components/InventoryNew';
 import { BranchesManagement } from './components/BranchesManagement';
 import { RecommendationsNew } from './components/RecommendationsNew';
+import { ProductsManagement } from './components/ProductsManagement';
 import { UploadDataNew } from './components/UploadDataNew';
 import { Invoices } from './components/Invoices';
 import { Settings } from './components/Settings';
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardNew />} />
             <Route path="ventas" element={<SalesMonthNew />} />
+            <Route path="productos" element={<ProductsManagement />} />
             <Route path="inventario" element={<InventoryNew />} />
             <Route path="sucursales" element={<BranchesManagement />} />
             <Route path="recomendaciones" element={<RecommendationsNew />} />

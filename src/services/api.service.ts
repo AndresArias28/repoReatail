@@ -20,7 +20,7 @@ class ApiService {
     // Interceptor para agregar el token en cada petición
     this.axiosInstance.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('auth_token');
+        const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }

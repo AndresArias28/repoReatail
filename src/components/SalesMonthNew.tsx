@@ -2,7 +2,7 @@
 // VENTAS POR MES CON INTEGRACIÓN API
 // ============================================
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { TrendingUp, DollarSign, Loader2 } from 'lucide-react';
 import {
@@ -14,6 +14,7 @@ import {
 } from './ui/select';
 import { useTopProducts } from '../hooks/useAnalytics';
 import { useBranches } from '../hooks/useBranches';
+import { useBranchScope } from '../hooks/useBranchScope';
 import type { FiltrosAnalytics } from '../types/database.types';
 
 // Sin datos mock: se mostrará estado vacío si el backend no retorna datos
@@ -22,6 +23,7 @@ export function SalesMonthNew() {
   const [filtros, setFiltros] = useState<FiltrosAnalytics>({
     mes: new Date().getMonth() + 1, // Mes actual (1-12)
   });
+  const { branchId, isAdmin } = useBranchScope();
 
   // Cargar datos del backend (top 5 productos del mes actual)
   const { data: sucursales } = useBranches();
@@ -29,6 +31,13 @@ export function SalesMonthNew() {
 
   // Usar datos del backend (sin fallback)
   const topProductsData = Array.isArray(topProducts) ? topProducts : [];
+
+  // Prefijar sucursal desde el usuario si está disponible
+  useEffect(() => {
+    if (typeof branchId === 'number') {
+      setFiltros((f) => ({ ...f, idSucursal: branchId }));
+    }
+  }, [branchId]);
 
   // Calcular métricas basadas en los productos más vendidos del mes actual
   const totalUnidadesVendidas = topProductsData.reduce((sum, item) => sum + (item?.cantidad || 0), 0);
@@ -72,19 +81,16 @@ export function SalesMonthNew() {
               </SelectContent>
             </Select>
             
-            {/* Filtro de Sucursal */}
+            {/* Filtro de Sucursal (deshabilitado si no es admin) */}
             <Select
-              value={filtros.idSucursal != null ? String(filtros.idSucursal) : 'todas'}
-              onValueChange={(value) =>
-                setFiltros({ ...filtros, idSucursal: value === 'todas' ? undefined : parseInt(value, 10) })
-              }
+              value={filtros.idSucursal != null ? String(filtros.idSucursal) : ''}
+              onValueChange={(value) => setFiltros({ ...filtros, idSucursal: parseInt(value, 10) })}
+              disabled={!isAdmin}
             >
               <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Sucursal" />
+                <SelectValue placeholder={filtros.idSucursal ? `Sucursal #${filtros.idSucursal}` : 'Sucursal'} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="todas">Todas las sucursales</SelectItem>
-
                 {Array.isArray(sucursales)
                   ? sucursales
                       .filter((s) => typeof (s as any)?.idSucursal === 'number' && !Number.isNaN((s as any).idSucursal))
