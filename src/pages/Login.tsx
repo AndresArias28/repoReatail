@@ -18,11 +18,27 @@ function Login() {
 
         try {
             const response = await authService.login({ email, password });
-            
+            console.log('Login exitoso:', response);
+
             if (response.token) {
-                console.log('Login exitoso:', response);
-                // Redirigir al dashboard
-                navigate('/dashboard');
+                // Guardar token en localStorage
+                localStorage.setItem('token', response.token);
+
+                // Guardar información del usuario
+                if (response.usuario) {
+                    localStorage.setItem('user', JSON.stringify(response.usuario));
+                }
+
+                // Detectar rol del usuario
+                const rol = response.usuario?.rol || 'usuario';
+                console.log('🎯 Rol detectado:', rol);
+
+                // Redirigir según el rol
+                if (rol.toLowerCase() === 'administrador') {
+                    navigate('/admin');
+                } else {
+                    navigate('/dashboard');
+                }
             } else {
                 setError(response.message || 'Error al iniciar sesión');
             }
@@ -33,6 +49,7 @@ function Login() {
             setIsLoading(false);
         }
     };
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 via-pink-600 to-blue-600 p-4">
@@ -142,39 +159,11 @@ function Login() {
                         </button>
                     </div>
 
-                    {/* Divider */}
-                    <div className="relative my-8">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-white border-opacity-20"></div>
-                        </div>
-                        <div className="relative flex justify-center text-sm">
-                            <span className="px-4 bg-transparent text-white text-opacity-50">
-                                o continúa con
-                            </span>
-                        </div>
-                    </div>
 
-                    {/* Social login buttons */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <button className="py-3 px-4 bg-white bg-opacity-10 backdrop-blur-sm border border-white border-opacity-20 rounded-xl text-white font-medium hover:bg-opacity-15 transition-all duration-300 transform hover:scale-105">
-                            Google
-                        </button>
-                        <button className="py-3 px-4 bg-white bg-opacity-10 backdrop-blur-sm border border-white border-opacity-20 rounded-xl text-white font-medium hover:bg-opacity-15 transition-all duration-300 transform hover:scale-105">
-                            GitHub
-                        </button>
-                    </div>
-
-                    {/* Sign up link */}
-                    <p className="text-center text-white text-opacity-70 mt-8">
-                        ¿No tienes cuenta?{' '}
-                        <button className="text-white font-semibold hover:underline transition-all">
-                            Regístrate aquí
-                        </button>
-                    </p>
                 </div>
             </div>
         </div>
     );
 }
 
-export  {Login};
+export { Login };
