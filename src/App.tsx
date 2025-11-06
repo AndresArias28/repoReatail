@@ -10,7 +10,7 @@ import { RecommendationsNew } from './components/RecommendationsNew';
 import { UploadDataNew } from './components/UploadDataNew';
 import { Invoices } from './components/Invoices';
 import { Settings } from './components/Settings';
-import { AdminPage } from './pages/Admin';
+import { AdminPage } from './pages/AdminNew';
 import { Login } from './pages/Login';
 import { Toaster } from './components/ui/sonner';
 
