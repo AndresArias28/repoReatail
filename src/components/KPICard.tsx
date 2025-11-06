@@ -16,7 +16,7 @@ export function KPICard({
   icon: Icon, 
   change, 
   changeType = 'neutral',
-  iconBgColor = 'bg-[#1E88E5]'
+  iconBgColor = '#0071BC'
 }: KPICardProps) {
   const changeColor = {
     positive: 'text-green-600',
@@ -24,20 +24,26 @@ export function KPICard({
     neutral: 'text-gray-600'
   }[changeType];
 
+  // Check if iconBgColor is a hex color or a Tailwind class
+  const isHexColor = iconBgColor.startsWith('#');
+
   return (
     <Card className="shadow-sm hover:shadow-md transition-shadow">
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <p className="text-sm text-gray-600">{title}</p>
-            <p className="mt-2 text-3xl">{value}</p>
+            <p className="mt-2 text-3xl font-bold">{value}</p>
             {change && (
               <p className={`mt-2 text-sm ${changeColor}`}>
                 {change}
               </p>
             )}
           </div>
-          <div className={`rounded-lg ${iconBgColor} p-3`}>
+          <div 
+            className={`rounded-lg p-3 ${!isHexColor ? iconBgColor : ''}`}
+            style={isHexColor ? { backgroundColor: iconBgColor } : {}}
+          >
             <Icon className="h-6 w-6 text-white" />
           </div>
         </div>
